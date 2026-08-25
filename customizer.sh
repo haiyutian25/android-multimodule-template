@@ -145,17 +145,11 @@ find . -name "*.bak" -type f -delete
 # Rename files
 echo "Renaming files to $DATAMODEL"
 find ./ -name "*MyModel*.kt" | sed "p;s/MyModel/${DATAMODEL^}/" | tr '\n' '\0' | xargs -0 -n 2 mv
-# Rename feature module names
-if [[ -n $(find ./ -name "*-mymodel") ]]
+# Rename feature module names (api/impl split)
+if [[ -n $(find ./ -name "*-mymodel-api" -or -name "*-mymodel-impl") ]]
 then
   echo "Renaming modules to $DATAMODEL"
-  find ./ -name "*-mymodel" -type d  | sed "p;s/mymodel/${DATAMODEL,,}/" |  tr '\n' '\0' | xargs -0 -n 2 mv
-fi
-# Rename feature navigation module names
-if [[ -n $(find ./ -name "*-mymodel-navigation") ]]
-then
-  echo "Renaming modules to $DATAMODEL"
-  find ./ -name "*-mymodel-navigation" -type d  | sed "p;s/mymodel/${DATAMODEL,,}/" |  tr '\n' '\0' | xargs -0 -n 2 mv
+  find ./ \( -name "*-mymodel-api" -or -name "*-mymodel-impl" \) -type d | sed "p;s/mymodel/${DATAMODEL,,}/" | tr '\n' '\0' | xargs -0 -n 2 mv
 fi
 # Rename directories
 echo "Renaming directories to $DATAMODEL"
@@ -179,7 +173,9 @@ then
     find ./ -type f -name "*.kt" -exec sed -i.bak \
         -e "s/val name: String/val $ENTITY_FIELD: String/g" \
         -e "s/it\.name/it.$ENTITY_FIELD/g" \
-        -e "s/$DATAMODEL(name = name)/$DATAMODEL($ENTITY_FIELD = name)/g" {} \;
+        -e "s/\.toModel()\.name/.toModel().$ENTITY_FIELD/g" \
+        -e "s/$DATAMODEL(name = name, uid = uid)/$DATAMODEL($ENTITY_FIELD = $ENTITY_FIELD, uid = uid)/g" \
+        -e "s/${DATAMODEL}Entity(name = name/${DATAMODEL}Entity($ENTITY_FIELD = name/g" {} \;
 fi
 
 # A. Replace the fake data used by tests/previews

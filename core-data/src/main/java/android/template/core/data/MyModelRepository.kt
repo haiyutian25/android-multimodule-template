@@ -2,8 +2,9 @@ package android.template.core.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import android.template.core.database.MyModel
 import android.template.core.database.MyModelDao
+import android.template.core.database.MyModelEntity
+import android.template.core.database.toModel
 import javax.inject.Inject
 
 interface MyModelRepository {
@@ -17,9 +18,9 @@ class DefaultMyModelRepository @Inject constructor(
 ) : MyModelRepository {
 
     override val myModels: Flow<List<String>> =
-        myModelDao.getMyModels().map { items -> items.map { it.name } }
+        myModelDao.getMyModels().map { items -> items.map { it.toModel().name } }
 
     override suspend fun add(name: String) {
-        myModelDao.insertMyModel(MyModel(name = name))
+        myModelDao.insertMyModel(MyModelEntity(name = name))
     }
 }

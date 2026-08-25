@@ -1,7 +1,7 @@
 package android.template.ui
 
-import android.template.feature.mymodel.navigation.Main
-import android.template.feature.mymodel.navigation.MyModelEntryProvider
+import android.template.feature.mymodel.api.navigation.Main
+import android.template.feature.mymodel.impl.navigation.MyModelEntryProvider
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider

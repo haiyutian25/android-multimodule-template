@@ -44,8 +44,8 @@ dependencies {
     implementation(composeBom)
     implementation(project(":core-data"))
     implementation(project(":core-testing"))
-    implementation(project(":feature-mymodel"))
-    implementation(project(":feature-mymodel-navigation"))
+    implementation(project(":feature-mymodel-api"))
+    implementation(project(":feature-mymodel-impl"))
 
     // Testing
     implementation(libs.androidx.test.core)

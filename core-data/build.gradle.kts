@@ -35,6 +35,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core-database"))
+    implementation(project(":core-model"))
 
     // Arch Components
     implementation(libs.hilt.android)

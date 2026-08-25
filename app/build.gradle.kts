@@ -65,8 +65,8 @@ kotlin {
 
 dependencies {
     implementation(project(":core-ui"))
-    implementation(project(":feature-mymodel"))
-    implementation(project(":feature-mymodel-navigation"))
+    implementation(project(":feature-mymodel-api"))
+    implementation(project(":feature-mymodel-impl"))
 
 
     // Core Android dependencies
