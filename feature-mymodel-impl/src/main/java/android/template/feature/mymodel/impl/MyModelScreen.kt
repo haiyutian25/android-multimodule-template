@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -31,12 +32,17 @@ fun MyModelScreen(
     viewModel: MyModelViewModel = hiltViewModel()
 ) {
     val items by viewModel.uiState.collectAsStateWithLifecycle()
-    if (items is Success) {
-        MyModelScreen(
-            items = (items as Success).data,
-            onSave = viewModel::addMyModel,
-            modifier = modifier
-        )
+    val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+    Column(modifier.safeDrawingPadding()) {
+        if (isSyncing) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        if (items is Success) {
+            MyModelScreen(
+                items = (items as Success).data,
+                onSave = viewModel::addMyModel
+            )
+        }
     }
 }
 

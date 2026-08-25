@@ -6,8 +6,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.template.core.data.DefaultMyModelRepository
+import android.template.core.data.Synchronizer
+import android.template.core.data.di.FakeMyModelNetworkDataSource
+import android.template.core.data.di.fakeMyModels
 import android.template.core.database.MyModelDao
 import android.template.core.database.MyModelEntity
 
@@ -19,13 +23,22 @@ class DefaultMyModelRepositoryTest {
 
     @Test
     fun myModels_newItemSaved_itemIsReturned() = runTest {
-        val repository = DefaultMyModelRepository(FakeMyModelDao())
+        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource())
 
         repository.add("Repository")
 
         assertEquals(repository.myModels.first().size, 1)
     }
 
+    @Test
+    fun syncWith_emptyDatabase_seedsRemoteData() = runTest {
+        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource())
+
+        val result = repository.syncWith(FakeSynchronizer())
+
+        assertTrue(result)
+        assertEquals(repository.myModels.first().size, fakeMyModels.size)
+    }
 }
 
 private class FakeMyModelDao : MyModelDao {
@@ -40,3 +53,5 @@ private class FakeMyModelDao : MyModelDao {
         data.add(0, item)
     }
 }
+
+private class FakeSynchronizer : Synchronizer

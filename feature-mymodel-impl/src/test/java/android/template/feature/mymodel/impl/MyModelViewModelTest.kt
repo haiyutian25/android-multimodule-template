@@ -3,12 +3,17 @@ package android.template.feature.mymodel.impl
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import android.template.core.data.MyModelRepository
+import android.template.core.data.Synchronizer
+import android.template.core.data.util.SyncManager
+import android.template.core.domain.AddMyModelUseCase
+import android.template.core.domain.GetMyModelsUseCase
 import android.template.feature.mymodel.impl.MyModelUiState
 import android.template.feature.mymodel.impl.MyModelViewModel
 
@@ -21,13 +26,21 @@ import android.template.feature.mymodel.impl.MyModelViewModel
 class MyModelViewModelTest {
     @Test
     fun uiState_initiallyLoading() = runTest {
-        val viewModel = MyModelViewModel(FakeMyModelRepository())
+        val viewModel = MyModelViewModel(
+            GetMyModelsUseCase(FakeMyModelRepository()),
+            AddMyModelUseCase(FakeMyModelRepository()),
+            FakeSyncManager(),
+        )
         assertEquals(viewModel.uiState.first(), MyModelUiState.Loading)
     }
 
     @Test
     fun uiState_onItemSaved_isDisplayed() = runTest {
-        val viewModel = MyModelViewModel(FakeMyModelRepository())
+        val viewModel = MyModelViewModel(
+            GetMyModelsUseCase(FakeMyModelRepository()),
+            AddMyModelUseCase(FakeMyModelRepository()),
+            FakeSyncManager(),
+        )
         assertEquals(viewModel.uiState.first(), MyModelUiState.Loading)
     }
 }
@@ -42,4 +55,11 @@ private class FakeMyModelRepository : MyModelRepository {
     override suspend fun add(name: String) {
         data.add(0, name)
     }
+
+    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
+}
+
+private class FakeSyncManager : SyncManager {
+    override val isSyncing: Flow<Boolean> = MutableStateFlow(false)
+    override fun requestSync() {}
 }

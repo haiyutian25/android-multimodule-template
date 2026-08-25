@@ -99,9 +99,9 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
 
 ### 第二阶段：架构升级
 
-- [ ] **离线优先 + 同步抽象**：引入 `Synchronizer` / `Syncable` 接口 + WorkManager `SyncWorker` 模式
+- [x] **离线优先 + 同步抽象**：引入 `Synchronizer` / `Syncable` 接口 + WorkManager `SyncWorker` 模式（2026-08-26 完成：`core-data` 新增 `SyncManager`/`Synchronizer`/`Syncable` 与 `MyModelNetworkDataSource`（假实现占位），新建 `sync-work` 模块：`SyncWorker`(HiltWorker) + `DelegatingWorker` + `WorkManagerSyncManager` + `Sync.initialize`，Application 启动入队同步，UI 展示同步进度）
   - 参考：`nowinandroid/core/data/src/main/kotlin/.../di/DataSyncModule.kt`、`nowinandroid/sync/work/`
-- [ ] **新增 `core-domain` UseCase 层**
+- [x] **新增 `core-domain` UseCase 层**（2026-08-26 完成：`GetMyModelsUseCase`/`AddMyModelUseCase`，ViewModel 改为仅依赖 UseCase + SyncManager）
   - 参考：`nowinandroid/core/domain/`
 - [ ] **DataStore 用户偏好**（可选）：Proto DataStore 或普通 Preferences DataStore
   - 参考：`nowinandroid/core/datastore/`

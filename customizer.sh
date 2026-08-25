@@ -173,9 +173,11 @@ then
     find ./ -type f -name "*.kt" -exec sed -i.bak \
         -e "s/val name: String/val $ENTITY_FIELD: String/g" \
         -e "s/it\.name/it.$ENTITY_FIELD/g" \
+        -e "s/model\.name/model.$ENTITY_FIELD/g" \
         -e "s/\.toModel()\.name/.toModel().$ENTITY_FIELD/g" \
         -e "s/$DATAMODEL(name = name, uid = uid)/$DATAMODEL($ENTITY_FIELD = $ENTITY_FIELD, uid = uid)/g" \
-        -e "s/${DATAMODEL}Entity(name = name/${DATAMODEL}Entity($ENTITY_FIELD = name/g" {} \;
+        -e "s/$DATAMODEL(name = /$DATAMODEL($ENTITY_FIELD = /g" \
+        -e "s/${DATAMODEL}Entity(name = /${DATAMODEL}Entity($ENTITY_FIELD = /g" {} \;
 fi
 
 # A. Replace the fake data used by tests/previews

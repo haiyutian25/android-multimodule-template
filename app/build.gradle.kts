@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":feature-mymodel-api"))
     implementation(project(":feature-mymodel-impl"))
+    implementation(project(":sync-work"))
 
 
     // Core Android dependencies
