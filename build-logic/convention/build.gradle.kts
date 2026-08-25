@@ -34,39 +34,43 @@ tasks {
     }
 }
 
-// The plugin ids must match the [plugins] entries in gradle/libs.versions.toml
+// The plugin ids come from the [plugins] entries in gradle/libs.versions.toml.
+// Note (same pattern as nowinandroid): an alias that is also a prefix of other aliases
+// (e.g. template.android.application has the child template.android.application.compose)
+// generates a node accessor, so the plugin itself must be obtained via asProvider();
+// pure leaf aliases return a Provider<PluginDependency> directly and use get().
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "template.android.application"
+            id = libs.plugins.template.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidApplicationCompose") {
-            id = "template.android.application.compose"
+            id = libs.plugins.template.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
         register("androidLibrary") {
-            id = "template.android.library"
+            id = libs.plugins.template.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = "template.android.library.compose"
+            id = libs.plugins.template.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidTest") {
-            id = "template.android.test"
+            id = libs.plugins.template.android.test.get().pluginId
             implementationClass = "AndroidTestConventionPlugin"
         }
         register("androidRoom") {
-            id = "template.android.room"
+            id = libs.plugins.template.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("androidHilt") {
-            id = "template.android.hilt"
+            id = libs.plugins.template.android.hilt.get().pluginId
             implementationClass = "AndroidHiltConventionPlugin"
         }
         register("jvmLibrary") {
-            id = "template.jvm.library"
+            id = libs.plugins.template.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"
         }
     }
