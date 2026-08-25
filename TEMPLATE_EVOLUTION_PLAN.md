@@ -108,7 +108,7 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
 
 ### 第三阶段：工程化
 
-- [ ] **`build-logic` 约定插件**：消除 8 个模块重复的 `build.gradle.kts` 配置（compileSdk、Java 17、testRunner 等）
+- [x] **`build-logic` 约定插件**：消除各模块重复的 `build.gradle.kts` 配置（2026-08-26 完成：8 个约定插件 `template.android.application(.compose)`、`template.android.library(.compose)`、`template.android.test`、`template.android.room`、`template.android.hilt`、`template.jvm.library`，集中管理 compileSdk/minSdk/Java 17/Compose BOM/Room schema/Hilt 依赖）
   - 参考：`nowinandroid/build-logic/convention/`
 - [ ] **NetworkMonitor / 网络状态感知**（可选）
 - [ ] **截图测试、自定义 Lint 规则、Macrobenchmark**（按需）

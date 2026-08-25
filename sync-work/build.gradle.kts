@@ -1,36 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.hilt.gradle)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.template.android.library)
+    alias(libs.plugins.template.android.hilt)
 }
 
 android {
     namespace = "android.template.sync.work"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 23
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildFeatures {
-        aidl = false
-        buildConfig = false
-        shaders = false
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
 }
 
 dependencies {
@@ -40,9 +14,7 @@ dependencies {
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Hilt Dependency Injection (including HiltWorker support)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    // HiltWorker support
     // api: the public HiltWorkerFactoryEntryPoint exposes the HiltWorkerFactory type to consumers
     api(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)

@@ -20,6 +20,13 @@ lifecycleViewmodelNav3 = "2.10.0"
 nav3Core = "1.1.2"
 
 [libraries]
+# Gradle plugins (used as compileOnly dependencies by build-logic convention plugins)
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+hilt-gradlePlugin = { group = "com.google.dagger", name = "hilt-android-gradle-plugin", version.ref = "hilt" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
+
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3"}
@@ -65,3 +72,13 @@ hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+# Convention plugins (provided by the build-logic included build, no versions needed)
+template-android-application = { id = "template.android.application" }
+template-android-application-compose = { id = "template.android.application.compose" }
+template-android-library = { id = "template.android.library" }
+template-android-library-compose = { id = "template.android.library.compose" }
+template-android-test = { id = "template.android.test" }
+template-android-room = { id = "template.android.room" }
+template-android-hilt = { id = "template.android.hilt" }
+template-jvm-library = { id = "template.jvm.library" }

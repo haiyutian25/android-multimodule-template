@@ -117,12 +117,15 @@ done
 
 for n in $(find . -type d \( -path '*/src/androidTest' -or -path '*/src/main' -or -path '*/src/test' \) )
 do
-  echo "Creating $n/java/$SUBDIR"
-  mkdir -p $n/java/$SUBDIR
-  echo "Moving files to $n/java/$SUBDIR"
-  mv $n/java/android/template/* $n/java/$SUBDIR
-  echo "Removing old $n/java/android/template"
-rm -rf $n/java/android
+  # Skip source sets without template sources (e.g. the build-logic convention plugins)
+  if [[ -d $n/java/android/template ]]; then
+    echo "Creating $n/java/$SUBDIR"
+    mkdir -p $n/java/$SUBDIR
+    echo "Moving files to $n/java/$SUBDIR"
+    mv $n/java/android/template/* $n/java/$SUBDIR
+    echo "Removing old $n/java/android/template"
+    rm -rf $n/java/android
+  fi
 done
 
 # Rename package and imports
