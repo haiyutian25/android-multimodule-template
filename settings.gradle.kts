@@ -27,6 +27,7 @@ include(":core-testing")
 include(":core-ui")
 include(":feature-mymodel-api")
 include(":feature-mymodel-impl")
+include(":sync-test")
 include(":sync-work")
 include(":test-app")
 

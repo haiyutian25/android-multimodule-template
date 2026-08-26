@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.coreTesting)
     implementation(projects.featureMymodelApi)
     implementation(projects.featureMymodelImpl)
+    implementation(projects.syncTest)
     implementation(projects.syncWork)
 
     val composeBom = platform(libs.androidx.compose.bom)

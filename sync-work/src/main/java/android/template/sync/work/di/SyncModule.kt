@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal interface SyncModule {
+interface SyncModule {
     @Binds
     fun bindsSyncStatusMonitor(
         syncStatusMonitor: WorkManagerSyncManager,

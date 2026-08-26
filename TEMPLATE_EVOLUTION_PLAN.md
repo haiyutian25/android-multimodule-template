@@ -118,7 +118,7 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
   - 参考：`nowinandroid/settings.gradle.kts`
 - [x] **新建 `core-network` 真实网络层**：Retrofit + OkHttp + kotlinx-serialization，替换 `MyModelNetworkDataSource` 假实现，让离线优先同步真正从网络拉取（2026-08-26 完成：网络 DTO `NetworkMyModel` 与领域模型分离，`RetrofitMyModelNetwork` 实现 + `NetworkModule` DI，`BACKEND_URL` 从 local.properties 注入 BuildConfig；注意：未配置真实后端前同步会失败、列表为空，属预期行为）
   - 参考：`nowinandroid/core/network/`
-- [ ] **测试基建**：测试替身（core-testing）、截图测试（Roborazzi）、sync-test
+- [x] **测试基建**：测试替身（core-testing）、截图测试（Roborazzi）、sync-test（2026-08-26 完成测试替身 + sync-test：`core-testing` 新增 `MainDispatcherRule`/`TestMyModelRepository`/`TestSyncManager`/`TestDispatcher(s)Module`，新建 `sync-test`（`NeverSyncingSyncManager` + `TestSyncModule` 替换生产同步绑定），`SyncModule`/`WorkManagerSyncManager` 放开为 public，ViewModel 测试对齐 NiA 的 stateIn 测试模式；**Roborazzi 截图测试未实施**）
   - 参考：`nowinandroid/core/testing/`、`core/screenshot-testing/`、`sync/sync-test/`
 - [ ] **Benchmark + Baseline Profile**：Macrobenchmark 模块，生成 Baseline Profile 优化启动
   - 参考：`nowinandroid/benchmarks/`

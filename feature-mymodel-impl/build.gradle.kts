@@ -49,6 +49,7 @@ dependencies {
     kspTest(libs.hilt.compiler)
 
     // Local tests: jUnit, coroutines, Android runner
+    testImplementation(projects.coreTesting)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }
