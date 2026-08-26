@@ -195,10 +195,10 @@ feature:xxx:impl ──► core:ui ──► core:designsystem ──► Compose
 - [x] D. design tokens 完善 + 主题清理 ✅（2026-08-26）
 - [x] E. `MyModelScreen` 组件升级（LazyColumn + strings）✅（2026-08-26）
 - [x] F. 统一状态模型 ✅（2026-08-26）
-- [ ] G. 图标集中管理（P2）
-- [ ] H. `core:ui` 结构预留（P2）
+- [x] G. 图标集中管理 ✅（2026-08-26）
+- [x] H. `core:ui` 结构预留 ✅（2026-08-26）
 
-> P0 + P1 已实施完成，见下方落地记录；P2 待用户勾选后实施。
+> P0 + P1 + P2 全部实施完成，见下方落地记录。
 
 ---
 
@@ -245,3 +245,21 @@ feature:xxx:impl ──► core:ui ──► core:designsystem ──► Compose
 - 主工程 `assembleDebug`、`testDebugUnitTest` 通过。
 - 临时副本运行 `customizer.sh`：strings.xml 随 feature 目录迁移且内容完整，无 `android.template`/`MyModel`/`MyApplicationTheme` 残留，定制副本（`feature:todoitem`）`assembleDebug` + `testDebugUnitTest` 通过。
 - 注：定制副本首次构建报原生内存分配失败（`malloc` OOM），系本会话 daemon 堆积所致，`gradlew --stop` 后重试通过，非代码问题。
+
+---
+
+## 9. 落地记录（P2：G/H）
+
+**改动文件：**
+
+1. **G · 图标集中管理**：
+   - `libs.versions.toml` 新增 `androidx-compose-material-icons-core`（compose BOM 管理版本）；`core:designsystem` 引入该依赖。
+   - 新增 `core:designsystem/icon/AppIcons.kt`：泛化图标注册表（对齐 NiA `NiaIcons`，不用 `Nia*` 前缀），集中管理 Add/Check/Close/Delete/Edit/Info/Refresh/Search/Settings/Warning。
+   - `ErrorView` 加 `Warning` 图标、`EmptyView` 加 `Info` 图标（图标注册表真实被使用，非死代码）。
+2. **H · `core:ui` 结构预留**：`core:ui` 作为"共享业务 UI"占位层已就位（`api(projects.core.designsystem)`，feature/app 经它获得 designsystem，形成 `feature:impl → core:ui → core:designsystem` 分层）。单 feature 模板暂无共享业务 UI 可放，随模板扩展再填充，无需额外改动。
+
+**验证：**
+
+- 主工程 `assembleDebug`、`testDebugUnitTest` 通过（所用图标均在 material-icons-core 中正常解析）。
+- 临时副本运行 `customizer.sh`：`AppIcons` 包名迁移为 `com.example.todo.core.designsystem.icon`，无 `android.template`/`MyModel` 残留，定制副本（`feature:todoitem`）`assembleDebug` + `testDebugUnitTest` 通过。
+- 注：期间 `testDebugUnitTest` 两次因会话 daemon 堆积出现资源类报错（`malloc` OOM / `-javaagent` 加载失败），均非代码问题，`gradlew --stop` 后重试通过。
