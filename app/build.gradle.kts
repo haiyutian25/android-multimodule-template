@@ -70,9 +70,12 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(projects.uiTestHiltManifest)
+
     // Instrumented tests
     androidTestImplementation(projects.core.testing)
-    androidTestImplementation(projects.uiTestHiltManifest)
+    androidTestImplementation(projects.core.dataTest)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.androidx.test.ext.junit)
