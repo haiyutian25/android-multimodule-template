@@ -1,10 +1,11 @@
 package android.template.feature.mymodel.impl
 
-import android.template.core.ui.MyApplicationTheme
-import android.template.feature.mymodel.impl.MyModelUiState.Success
+import android.template.core.designsystem.component.UiStateView
+import android.template.core.designsystem.theme.MyApplicationTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -31,43 +32,58 @@ fun MyModelScreen(
     modifier: Modifier = Modifier,
     viewModel: MyModelViewModel = hiltViewModel()
 ) {
-    val items by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
-    Column(modifier.safeDrawingPadding()) {
+    Column(
+        modifier = modifier
+            .safeDrawingPadding()
+            .fillMaxSize()
+    ) {
         if (isSyncing) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
-        if (items is Success) {
-            MyModelScreen(
-                items = (items as Success).data,
-                onSave = viewModel::addMyModel
-            )
+        MyModelInput(onSave = viewModel::addMyModel)
+        UiStateView(
+            uiState = uiState,
+            onRetry = viewModel::retry,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            successContent = { items -> MyModelList(items = items) }
+        )
+    }
+}
+
+@Composable
+private fun MyModelInput(
+    onSave: (name: String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var nameMyModel by remember { mutableStateOf("Compose") }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        TextField(
+            modifier = Modifier.weight(1f),
+            value = nameMyModel,
+            onValueChange = { nameMyModel = it }
+        )
+
+        Button(modifier = Modifier.width(96.dp), onClick = { onSave(nameMyModel) }) {
+            Text("Save")
         }
     }
 }
 
 @Composable
-internal fun MyModelScreen(
+private fun MyModelList(
     items: List<String>,
-    onSave: (name: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier.safeDrawingPadding()) {
-        var nameMyModel by remember { mutableStateOf("Compose") }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextField(
-                modifier = Modifier.weight(1f),
-                value = nameMyModel,
-                onValueChange = { nameMyModel = it }
-            )
-
-            Button(modifier = Modifier.width(96.dp), onClick = { onSave(nameMyModel) }) {
-                Text("Save")
-            }
-        }
+    Column(modifier = modifier) {
         items.forEach {
             Text("Saved item: $it")
         }
@@ -78,16 +94,16 @@ internal fun MyModelScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun DefaultPreview() {
+private fun MyModelInputPreview() {
     MyApplicationTheme {
-        MyModelScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        MyModelInput(onSave = {})
     }
 }
 
 @Preview(showBackground = true, widthDp = 340)
 @Composable
-private fun PortraitPreview() {
+private fun MyModelListPreview() {
     MyApplicationTheme {
-        MyModelScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        MyModelList(items = listOf("Compose", "Room", "Kotlin"))
     }
 }

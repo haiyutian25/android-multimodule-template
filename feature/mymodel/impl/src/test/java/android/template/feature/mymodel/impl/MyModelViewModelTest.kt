@@ -15,7 +15,7 @@ import android.template.core.domain.GetMyModelsUseCase
 import android.template.core.testing.repository.TestMyModelRepository
 import android.template.core.testing.util.MainDispatcherRule
 import android.template.core.testing.util.TestSyncManager
-import android.template.feature.mymodel.impl.MyModelUiState
+import android.template.core.designsystem.component.UiState
 import android.template.feature.mymodel.impl.MyModelViewModel
 
 /**
@@ -42,7 +42,7 @@ class MyModelViewModelTest {
 
     @Test
     fun uiState_initiallyLoading() = runTest {
-        assertEquals(MyModelUiState.Loading, viewModel.uiState.value)
+        assertEquals(UiState.Loading, viewModel.uiState.value)
     }
 
     @Test
@@ -52,7 +52,7 @@ class MyModelViewModelTest {
         repository.sendMyModels(listOf("One", "Two"))
 
         assertEquals(
-            MyModelUiState.Success(listOf("One", "Two")),
+            UiState.Success(listOf("One", "Two")),
             viewModel.uiState.value,
         )
     }

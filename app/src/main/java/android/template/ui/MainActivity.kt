@@ -10,7 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
-import android.template.core.ui.MyApplicationTheme
+import android.template.core.designsystem.theme.MyApplicationTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

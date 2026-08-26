@@ -189,13 +189,35 @@ feature:xxx:impl ──► core:ui ──► core:designsystem ──► Compose
 
 ## 6. 确认状态
 
-- [ ] A. 新建 `core:designsystem` 分层
-- [ ] B. 可复用状态组件（Loading/Error/Empty）
-- [ ] C. `MyModelScreen` 三态处理
+- [x] A. 新建 `core:designsystem` 分层 ✅（2026-08-26）
+- [x] B. 可复用状态组件（Loading/Error/Empty）✅（2026-08-26）
+- [x] C. `MyModelScreen` 三态处理 ✅（2026-08-26）
 - [ ] D. design tokens 完善 + 主题清理
 - [ ] E. `MyModelScreen` 组件升级（LazyColumn + strings）
 - [ ] F. 统一状态模型
 - [ ] G. 图标集中管理（P2）
 - [ ] H. `core:ui` 结构预留（P2）
 
-> 待用户勾选后开始实施。
+> P0 已实施完成，见下方落地记录；P1/P2 待用户勾选后实施。
+
+---
+
+## 7. 落地记录（P0：A/B/C）
+
+**改动文件：**
+
+1. **新建 `core:designsystem` 模块**（对齐 NiA 分层）：
+   - `build.gradle.kts`：`template.android.library` + `library.compose` + `library.jacoco`。
+   - `theme/`：`Color.kt`、`Theme.kt`、`Type.kt`（从 `core:ui` 迁入，去掉死 import 与模板注释残留；主题名/配色保持，待 P1-D 清理）。
+   - `component/`：`UiState.kt`（泛型 `UiState<T>` + `UiStateView` 分发器）、`LoadingIndicator.kt`、`ErrorView.kt`（带重试）、`EmptyView.kt`，均带主题化 Preview。
+   - `settings.gradle.kts` 注册 `:core:designsystem`。
+2. **`core:ui` 改为分层中转**：移除已迁出的主题文件，`api(projects.core.designsystem)`，形成 `feature:impl → core:ui → core:designsystem`（对齐 NiA）。
+3. **`MyModelViewModel`**：改用泛型 `UiState<List<String>>`（`Loading/Error/Empty/Success`），空列表映射 `Empty`；新增 `retry()`（`flatMapLatest` + retryTrigger 重订阅）。
+4. **`MyModelScreen`**：输入区常显，列表区用 `UiStateView` 完整呈现三态，错误不再静默；拆分 `MyModelInput`/`MyModelList`。
+5. **`MainActivity`**：主题 import 指向 `core:designsystem.theme`。
+6. **`MyModelViewModelTest`**：断言改用泛型 `UiState`。
+
+**验证：**
+
+- 主工程 `assembleDebug`、`testDebugUnitTest` 通过；`core:designsystem` 正常产出 AAR。
+- 临时副本运行 `customizer.sh`：designsystem 包名迁移为 `com.example.todo.core.designsystem`，无 `android.template`/`MyModel` 残留，定制副本（`feature:todoitem`）`assembleDebug` + `testDebugUnitTest` 通过。
