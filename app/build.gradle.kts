@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.template.android.application)
     alias(libs.plugins.template.android.application.compose)
     alias(libs.plugins.template.android.hilt)
+    alias(libs.plugins.template.android.application.jacoco)
     alias(libs.plugins.baselineprofile)
 }
 
@@ -65,6 +66,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     // Navigation
+    implementation(projects.core.navigation)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 

@@ -49,6 +49,10 @@ gradlePlugin {
             id = libs.plugins.template.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
+        register("androidApplicationJacoco") {
+            id = libs.plugins.template.android.application.jacoco.get().pluginId
+            implementationClass = "AndroidApplicationJacocoConventionPlugin"
+        }
         register("androidLibrary") {
             id = libs.plugins.template.android.library.asProvider().get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
@@ -56,6 +60,18 @@ gradlePlugin {
         register("androidLibraryCompose") {
             id = libs.plugins.template.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
+        }
+        register("androidLibraryJacoco") {
+            id = libs.plugins.template.android.library.jacoco.get().pluginId
+            implementationClass = "AndroidLibraryJacocoConventionPlugin"
+        }
+        register("androidFeatureApi") {
+            id = libs.plugins.template.android.feature.api.get().pluginId
+            implementationClass = "AndroidFeatureApiConventionPlugin"
+        }
+        register("androidFeatureImpl") {
+            id = libs.plugins.template.android.feature.impl.get().pluginId
+            implementationClass = "AndroidFeatureImplConventionPlugin"
         }
         register("androidTest") {
             id = libs.plugins.template.android.test.get().pluginId

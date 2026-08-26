@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.template.android.library)
+    alias(libs.plugins.template.android.feature.impl)
     alias(libs.plugins.template.android.library.compose)
-    alias(libs.plugins.template.android.hilt)
+    alias(libs.plugins.template.android.library.jacoco)
 }
 
 android {
@@ -16,26 +16,17 @@ android {
 dependencies {
     implementation(projects.core.data)
     implementation(projects.core.domain)
-    implementation(projects.core.ui)
     implementation(projects.feature.mymodel.api)
-
-    androidTestImplementation(projects.core.testing)
 
     // Core Android dependencies
     implementation(libs.androidx.activity.compose)
 
     // Arch Components
-    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     // Compose
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
-
-    // Navigation
-    implementation(libs.androidx.navigation3.runtime)
 
     // Instrumented tests
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -17,6 +17,7 @@ androidxUiAutomator = "2.3.0"
 androidxWork = "2.10.0"
 coroutines = "1.11.0"
 hilt = "2.59.2"
+jacoco = "0.8.12"
 junit = "4.13.2"
 kotlin = "2.3.21"
 kotlinxSerializationCore = "1.11.0"
@@ -94,8 +95,12 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 # Convention plugins (provided by the build-logic included build, no versions needed)
 template-android-application = { id = "template.android.application" }
 template-android-application-compose = { id = "template.android.application.compose" }
+template-android-application-jacoco = { id = "template.android.application.jacoco" }
+template-android-feature-api = { id = "template.android.feature.api" }
+template-android-feature-impl = { id = "template.android.feature.impl" }
 template-android-library = { id = "template.android.library" }
 template-android-library-compose = { id = "template.android.library.compose" }
+template-android-library-jacoco = { id = "template.android.library.jacoco" }
 template-android-test = { id = "template.android.test" }
 template-android-room = { id = "template.android.room" }
 template-android-hilt = { id = "template.android.hilt" }

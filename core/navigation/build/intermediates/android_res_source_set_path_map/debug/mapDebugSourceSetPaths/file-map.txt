@@ -1,0 +1,9 @@
+android.template.core.navigation-pngs-0 C:\architecture-templates-multimodule\core\navigation\build\generated\res\pngs\debug
+android.template.core.navigation-updated_navigation_xml-1 C:\architecture-templates-multimodule\core\navigation\build\generated\updated_navigation_xml\debug
+android.template.core.navigation-mergeDebugResources-2 C:\architecture-templates-multimodule\core\navigation\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
+android.template.core.navigation-mergeDebugResources-3 C:\architecture-templates-multimodule\core\navigation\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+android.template.core.navigation-debug-4 C:\architecture-templates-multimodule\core\navigation\build\intermediates\merged_res\debug\mergeDebugResources
+android.template.core.navigation-debug-5 C:\architecture-templates-multimodule\core\navigation\build\intermediates\packaged_res\debug\packageDebugResources
+android.template.core.navigation-debug-6 C:\architecture-templates-multimodule\core\navigation\src\debug\res
+android.template.core.navigation-main-7 C:\architecture-templates-multimodule\core\navigation\src\main\res
+gradleHome-0 D:\AndroidDev\gradle

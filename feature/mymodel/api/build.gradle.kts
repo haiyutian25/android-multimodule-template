@@ -1,7 +1,5 @@
 plugins {
-    alias(libs.plugins.template.android.library)
-    alias(libs.plugins.template.android.library.compose)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.template.android.feature.api)
 }
 
 android {
@@ -10,10 +8,4 @@ android {
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")
     }
-}
-
-dependencies {
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.navigation3.runtime)
 }

@@ -38,9 +38,11 @@
 
 ---
 
-## 🟡 可选对齐（结构性、改动中等）
+## 🟡 可选对齐（结构性、改动中等）✅ 已完成（2026-08-26）
 
-### 3. `core:navigation` 模块
+> 本节两项均已对齐落地，验证方式见文末"落地记录（可选对齐部分）"。
+
+### 3. `core:navigation` 模块 ✅
 
 - NiA 有独立的 `core:navigation` 模块，包含 `Navigator` 与 `NavigationState`，专门管理 Navigation3 的回退栈、顶层目的地切换（`navigate`/`goBack`/顶层栈与子栈分离）。
 - 本模板的 `app` 目前是**内联**管理回退栈，没有抽出独立的导航状态管理模块。
@@ -48,7 +50,7 @@
 
 参考：`nowinandroid/core/navigation/src/main/kotlin/.../Navigator.kt`、`NavigationState.kt`
 
-### 4. build-logic 缺失的约定插件（排除项之外）
+### 4. build-logic 缺失的约定插件（排除项之外）✅
 
 - **feature 专用约定插件**：NiA 有 `AndroidFeatureApiConventionPlugin` / `AndroidFeatureImplConventionPlugin`，把 feature 模块的公共依赖（`core:ui`、`core:designsystem`、lifecycle、navigation3 等）集中到插件里统一注入；本模板是在每个 feature 的 `build.gradle.kts` 里手写这些依赖。
   - 评估：feature 数量多时才体现价值；当前单个 feature 收益小。
@@ -71,7 +73,7 @@
 ## 处理建议
 
 1. **优先**：第 1 项（`gradle.properties`）+ 第 2 项（`compose_compiler_config.conf`）——低成本、无风险、立刻见效的配置对齐。**（已完成，见落地记录）**
-2. **按需**：第 3 项（`core:navigation`）、第 4 项（feature 约定插件 / Jacoco）——结构性改动，视模板定位决定是否引入。
+2. **按需**：第 3 项（`core:navigation`）、第 4 项（feature 约定插件 / Jacoco）——结构性改动，视模板定位决定是否引入。**（已完成，见落地记录）**
 3. **不跟**：⚪ 部分——方案不同或意义小，保持现状。
 
 ---
@@ -98,3 +100,31 @@
 - `:core:ui:compileDebugKotlin` 禁用缓存强制真实编译通过，确认 Compose 编译器消费了稳定性配置文件。
 - 单元测试 `testDebugUnitTest` 全部通过。
 - 临时副本运行 `customizer.sh com.example.todo TodoItem TodoApp …`：conf 文件正确重写为 `com.example.todo.core.model.*`，定制副本 `assembleDebug` 构建成功。
+
+---
+
+## 落地记录（可选对齐部分）
+
+**改动文件：**
+
+1. **`core:navigation` 新模块**（对齐 NiA 的 Navigation3 导航抽象）：
+   - `core/navigation/build.gradle.kts`、`Navigator.kt`、`NavigationState.kt`（`rememberNavigationState` / `NavigationState` / `Navigator` / `toEntries`）。
+   - `settings.gradle.kts` 注册 `:core:navigation`。
+   - `app/.../ui/Navigation.kt` 由"内联 `rememberNavBackStack` + `NavDisplay`"重构为"`rememberNavigationState` + `Navigator` + `toEntries`"，`onBack` 走 `navigator.goBack()`。
+   - `feature/mymodel/impl/.../EntryProvider.kt` 由接收 `NavBackStack` 改为接收 `Navigator`（`onItemClick` 走 `navigator.navigate`）。
+2. **feature 约定插件**：
+   - 新增 `AndroidFeatureApiConventionPlugin`（library + serialization + `api(:core:navigation)` + serialization-core）。
+   - 新增 `AndroidFeatureImplConventionPlugin`（library + hilt + `core:ui` + lifecycle/viewModel/hilt-viewModel Compose + navigation3-runtime）。
+   - `feature/mymodel/api`、`feature/mymodel/impl` 的 `build.gradle.kts` 改用约定插件，公共依赖下沉。
+3. **Jacoco 约定插件**：
+   - 新增 `Jacoco.kt`（`configureJacoco`，对齐 NiA 的 combined coverage report）、`AndroidApplicationJacocoConventionPlugin`、`AndroidLibraryJacocoConventionPlugin`。
+   - `libs.versions.toml` 新增 `jacoco = "0.8.12"` 及 4 个插件 id。
+   - 应用到 `app` + `core:data/database/domain/navigation/ui` + `feature:mymodel:impl` + `sync:work`（跳过 JVM 模块 `core:common`/`core:model` 及测试/基准模块）。
+4. `build-logic/convention/build.gradle.kts` 注册上述 4 个新插件。
+
+**验证：**
+
+- 主工程 `assembleDebug` 构建成功，Jacoco 任务（`:app:jacocoDebug` 等）正常生效。
+- `:core:data:createDebugCombinedCoverageReport` 任务已注册（dry-run 可解析任务图）。
+- 单元测试 `testDebugUnitTest` 在 Jacoco 插桩下全部通过。
+- 临时副本运行 `customizer.sh`：`core:navigation` 源码与包名正确迁移为 `com.example.todo.core.navigation`，无 `android.template` 残留，定制副本（`feature:todoitem`）`assembleDebug` 构建成功。
