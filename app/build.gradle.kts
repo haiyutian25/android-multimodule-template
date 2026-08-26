@@ -72,6 +72,7 @@ dependencies {
 
     // Instrumented tests
     androidTestImplementation(projects.core.testing)
+    androidTestImplementation(projects.uiTestHiltManifest)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.androidx.test.ext.junit)

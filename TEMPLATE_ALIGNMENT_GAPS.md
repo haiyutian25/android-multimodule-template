@@ -60,13 +60,46 @@
 
 ---
 
-## ⚪ 差异但可不跟（方案不同 / 意义小）
+## ⚪ 差异项深度对比（原"可不跟"，已逐项评估）
 
-| 项 | NiA 做法 | 本模板做法 | 结论 |
-|----|---------|-----------|------|
-| `ui-test-hilt-manifest` | 提供 `HiltComponentActivity` 供 UI 测试使用 | 用 `test-app` 模块实现同等目的 | 方案不同，无需改 |
-| `core:data-test` 独立模块 | 数据层测试替身单独成模块 | 测试替身放在 `core:testing` | 功能等价，无需改 |
-| 同步的 change-list 深度 | `Syncable` 有增量 change-list 版本机制 | "空库则拉全量"的简化版 | 与真实后端强相关，暂不跟 |
+> 2026-08-26 对三项差异做了两侧实现的深度对比，结论如下。
+
+### 5. `ui-test-hilt-manifest`（UI 测试的 Hilt 方案）
+
+| | NiA `ui-test-hilt-manifest` | 本模板 `test-app` |
+|---|---|---|
+| 模块类型 | 普通 library，仅 1 个 Activity + 1 个 Manifest | `com.android.test` 独立测试 APK（`targetProjectPath=":app"`） |
+| 核心 | `HiltComponentActivity`（`@AndroidEntryPoint` 空 `ComponentActivity`） | `AppTest` 用 `createAndroidComposeRule<MainActivity>()` |
+| 测试对象 | 各模块**自己的 Composable**（isolated，测试里自行 setContent） | **真实 MainActivity**（端到端） |
+
+- 两者**目的不同**：NiA 的 `HiltComponentActivity` 是为 [dagger#3394](https://github.com/google/dagger/issues/3394) 提供的 Hilt 宿主 Activity，让每个 feature 能 isolated 跑 Hilt UI 测试；我们的 `test-app` 直接测真实 `MainActivity`（本身已 `@AndroidEntryPoint`），绕开了该 issue。
+- NiA 的端到端导航测试（`app/src/androidTest/NavigationTest.kt`）同样用 `createAndroidComposeRule<MainActivity>()`，与我们的 `test-app` 本质一致，只是放在 app 的 androidTest 而非独立模块。
+- **结论**：无运行时性能差（都是测试态）。NiA 方案胜在**可扩展**（feature 多了各自 isolated 测试、启动快）；我们的 `test-app` 胜在**真实**但更重。**单 feature 模板用 `test-app` 足够**。
+- **处理**：已按 NiA 补齐 `ui-test-hilt-manifest` 模块（见落地记录），与 `test-app` 并存，使模板同时具备"隔离 UI 测试 + 端到端测试"两种能力。
+
+### 6. `core:data-test` 独立模块（测试替身组织）
+
+- NiA 有两个分工明确的模块：
+  - `core:data-test`：**可被 Hilt 替换的数据层 Fake**（`FakeNewsRepository` 等）+ `TestDataModule`（`@TestInstallIn` 替换 `DataModule`）。
+  - `core:testing`：**通用测试基建**（`NiaTestRunner`、测试规则、`TestDispatcher` DI、测试数据、单测用 `Test*Repository`、`TestSyncManager` 等）。
+- 本模板只有 `core:testing`（`HiltTestRunner`、`TestDispatcherModule`、`MainDispatcherRule`、`TestSyncManager`、`TestMyModelRepository`），但 **Hilt Fake（`FakeMyModelRepository` + `fakeMyModels`）被写在了生产模块 `core:data` 里**（`core/data/.../di/DataModule.kt`）。
+- **结论**：**NiA 架构上更干净**——生产模块不掺测试代码、依赖方向清晰（测试依赖生产，绝不反向）、Fake 可跨测试模块复用。我们把 Fake 塞进生产 `core:data`，导致依赖它的模块都会带上测试假实现，是**设计短板**。运行时性能无差异，差别在架构卫生。
+- **处理**：暂不跟（改造需拆模块 + 迁移 Fake，收益为架构整洁而非功能/性能）。
+
+### 7. 同步的 change-list 深度
+
+| 维度 | NiA change-list 增量 | 本模板"空库拉全量" |
+|---|---|---|
+| 首次同步 | 拉全量 | 拉全量 |
+| 后续同步 | **只传 change-list（id+版本+删除标记，极小）+ 变化项**（分批 `SYNC_BATCH_SIZE=40`） | 不再同步 |
+| 数据新鲜度/正确性 | 持续同步，**更新+删除都会传播** | **首次种子后永不更新**，本地逐渐失真 |
+| 网络/服务端压力 | 增量，大数据量+高频同步优势明显 | 一次性最省，但代价是从不更新 |
+| 依赖 | **需后端提供"按版本返回变更"接口** | 无特殊要求 |
+
+- NiA 的 `changeListSync`（`SyncUtilities.kt`）：读版本 → 拉该版本后的 change-list → 空则结束 → 按 `isDelete` 拆分，删已删项、只对变化 id 拉完整数据 upsert → 推进版本。
+- 本模板 `DefaultMyModelRepository.syncWith` 仅在本地库为空时拉全量插入，之后不再同步（代码中已有 `TODO` 标注）。
+- **结论**：**NiA 明显更好**——既正确（传播更新/删除）又在重复同步下性能更优（只传差异）。本模板是占位实现，唯一"优点"是简单、一次性流量最省，但以数据永不更新为代价，生产不可用。**前提**：change-list 需后端支持，与真实后端强相关。
+- **处理**：暂不跟（等真实后端提供 change-list 接口后再对齐）。
 
 ---
 
@@ -128,3 +161,23 @@
 - `:core:data:createDebugCombinedCoverageReport` 任务已注册（dry-run 可解析任务图）。
 - 单元测试 `testDebugUnitTest` 在 Jacoco 插桩下全部通过。
 - 临时副本运行 `customizer.sh`：`core:navigation` 源码与包名正确迁移为 `com.example.todo.core.navigation`，无 `android.template` 残留，定制副本（`feature:todoitem`）`assembleDebug` 构建成功。
+
+---
+
+## 落地记录（差异项对齐部分 · 第 5 项 ui-test-hilt-manifest）
+
+**改动文件：**
+
+1. **新建 `ui-test-hilt-manifest` 模块**（对齐 NiA，根目录，与 `test-app` 并列）：
+   - `ui-test-hilt-manifest/build.gradle.kts`：`template.android.library` + `template.android.hilt`。
+   - `HiltComponentActivity.kt`：`@AndroidEntryPoint` 的空 `ComponentActivity`（dagger#3394 的 Hilt 宿主 Activity）。
+   - `AndroidManifest.xml`：以 NoActionBar 主题声明 `HiltComponentActivity`。
+2. `settings.gradle.kts` 注册 `:ui-test-hilt-manifest`。
+3. `app/build.gradle.kts` 的 androidTest 增加 `androidTestImplementation(projects.uiTestHiltManifest)`，使 app 的隔离 UI 测试可用 `HiltComponentActivity`。
+
+**与现有测试的关系：** 本模板原有 `app/src/androidTest/NavigationTest.kt`（测真实 `MainActivity`）对应 NiA 的端到端导航测试，`test-app` 模块亦保留；新增的 `ui-test-hilt-manifest` 补齐的是 NiA 的"隔离 Composable UI 测试"能力，二者并存。
+
+**验证：**
+
+- `:ui-test-hilt-manifest:assembleDebug` + `:app:assembleDebugAndroidTest` 构建成功（`HiltComponentActivity` 的 Hilt 代码生成正常，`ComponentActivity` 经传递依赖可用）。
+- 临时副本运行 `customizer.sh`：`HiltComponentActivity` 包名正确重写为 `com.example.todo.uitesthiltmanifest`，无 `android.template` 残留，定制副本构建成功。

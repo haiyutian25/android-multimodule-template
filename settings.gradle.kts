@@ -32,6 +32,7 @@ include(":feature:mymodel:impl")
 include(":sync:sync-test")
 include(":sync:work")
 include(":test-app")
+include(":ui-test-hilt-manifest")
 
 check(JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
     """
