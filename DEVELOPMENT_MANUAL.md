@@ -214,12 +214,13 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 |---|---|---|
 | 本地读 | `DefaultMyModelRepository.myModels` | 只读 `myModelDao`，绝不直连网络 |
 | 网络同步 | `DefaultMyModelRepository.syncWith` | 从 `networkDataSource` 拉取 → 写入 Room |
-| 同步抽象 | `core:data` `Synchronizer`/`Syncable` | 仓库实现 `Syncable` 即可被同步 |
+| 同步抽象 | `core:data` `Synchronizer`/`Syncable` | 仓库实现 `Syncable` 获得同步能力；**还需**注入 `SyncWorker` 并调 `sync()` 才真正参与同步（非自动，见 6.2） |
 | 后台执行 | `sync:work` `SyncWorker` | `@HiltWorker`，调 `repository.sync()`，失败 `retry` |
 | 触发 | `Sync.initialize` | 应用启动入队唯一同步任务（`ExistingWorkPolicy.KEEP`） |
 | 同步状态 | `WorkManagerSyncManager` | 观察 `WorkInfo` 得 `isSyncing`，`requestSync()` 重新入队 |
 
 > 当前同步策略为"空库则拉全量"的占位实现（`syncWith` 内有 `TODO`）；接入真实后端后可升级为 change-list 增量同步。
+> **升级前提**：NiA 的 change-list 增量同步依赖版本号存储（`ChangeListVersions`，NiA 存于 DataStore，由 `Synchronizer.getChangeListVersions/updateChangeListVersions` 读写）。本模板已决策"不做 DataStore"，升级前需先确定版本存储方案（如用 Room 表存同步版本并为 `Synchronizer` 扩展版本读写），否则增量同步会卡在版本管理环节。
 
 ---
 
@@ -235,41 +236,48 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 新增一个业务功能，自底向上依次经过：
 
 ① core:model         → 领域模型（纯数据类，无 Android 依赖）
-② core:database      → Entity + DAO + 注册 Database（+ toModel 映射）
+② core:database      → Entity + DAO + 注册 Database（+ toModel 映射 + DatabaseModule 提供 DAO）
 ③ core:network       → 网络 DTO + Retrofit 数据源
 ④ core:data          → Repository（离线优先）+ DataModule @Binds 绑定
 ⑤ core:domain        → UseCase（组合 Repository 的单一操作）
-⑥ feature:xxx:api    → NavKey 导航契约（@Serializable）
-⑦ feature:xxx:impl   → ViewModel + Screen + EntryProvider
-⑧ app                → MainNavigation 组装 + 添加模块依赖
-⑨ settings.gradle.kts → include 新模块
+⑥ settings.gradle.kts → include 新模块（feature:xxx:api / feature:xxx:impl）
+⑦ feature:xxx:api    → NavKey 导航契约（@Serializable）
+⑧ feature:xxx:impl   → ViewModel + Screen + EntryProvider
+⑨ app                → MainNavigation 组装 + 添加模块依赖
+⑩ 测试联动           → core:data-test（TestDataModule 补新仓库 Fake 绑定）+ core:testing（按需补测试替身）
 ```
 
-> 建议每完成一层就跑 `gradlew assembleDebug` + `testDebugUnitTest`，尽早暴露问题。若仓库需同步（实现 `Syncable`），还要把它注入 `SyncWorker`（`sync:work`）并在 `doWork` 调 `sync()` 才纳入同步（非自动）。
+> - ①~⑤ 与 ⑩ 在模板已有模块内追加代码即可，无需改 `settings.gradle.kts`；只有**新建 feature 模块**才需要 ⑥ 的 include。
+> - **⑩ 不是可选项**：`TestDataModule` 以 `@TestInstallIn` **整体替换** `DataModule`，往 `DataModule` 新增仓库绑定后，若不同步在 `TestDataModule` 补 Fake 绑定，所有现存 Hilt 仪器测试都会因缺少绑定而构建失败。
+> - **网络配置**：网络层从根目录 `local.properties` 读取 `BACKEND_URL` 注入 BuildConfig（见 `core:network/build.gradle.kts`）；未配置时回退占位地址，同步会始终失败、列表为空，属接入真实后端前的预期行为。
+> - **include 必须先于引用**：`projects.feature.xxx.api` 等 typesafe 访问器由 `settings.gradle.kts` 的 include 生成，不先 include 并 Gradle Sync，步骤⑦⑧的 `build.gradle.kts` 依赖声明无法编译。
+> - **领域模型贯穿各层**：Repository 向上暴露 `Flow<List<领域模型>>`（如 `Flow<List<Task>>`），由 database 层 `toModel()` 映射后经 UseCase 传到 ViewModel；不要在 Repository 把模型降级成 `List<String>` 等基本类型。
+> - 建议每完成一层就跑 `gradlew assembleDebug` + `testDebugUnitTest`，尽早暴露问题。若仓库需同步（实现 `Syncable`），还要把它注入 `SyncWorker`（`sync:work`）并在 `doWork` 调 `sync()` 才纳入同步（非自动）。
 
 ### 6.2 模块归属速查表（什么代码放哪个模块）
 
 | 你要写的东西 | 放哪个模块 | 说明 |
 |---|---|---|
 | 领域模型（纯数据类，无 Android 依赖） | `core:model` | 最底层，被各层共享 |
-| Room Entity / DAO / Database / `toModel` 映射 | `core:database` | 本地持久化 |
+| Room Entity / DAO / Database / `toModel` 映射 | `core:database` | 本地持久化；新增 DAO 还要在 `DatabaseModule` 补 `@Provides` |
 | 网络 DTO / Retrofit 接口 / 网络数据源实现 | `core:network` | 只负责网络，不碰本地 |
 | Repository 接口 + 离线优先实现 | `core:data` | UI 的唯一数据入口 |
-| 同步能力（仓库需同步） | `core:data` + `sync:work` | 仓库实现 `Syncable.syncWith`；**还需**注入 `SyncWorker` 并调 `sync()`（非自动；多仓库可 `awaitAll` 并行） |
-| UseCase（组合 Repository 的聚焦操作） | `core:domain` | ViewModel 只依赖它 |
+| 同步能力（仓库需同步） | `core:data` + `sync:work` | 仓库实现 `Syncable.syncWith`；**还需**注入 `SyncWorker` 并调 `sync()`（非自动；多仓库可 `awaitAll` 并行）；升级 change-list 增量同步前先读第五章"升级前提" |
+| UseCase（组合 Repository 的聚焦操作） | `core:domain` | ViewModel 经它取数（架构组件如 `SyncManager` 另行注入） |
 | ViewModel | `feature:*:impl` | 依赖 UseCase + SyncManager |
 | Compose Screen / 本 feature 私有组件 | `feature:*:impl` | 业务界面 |
 | NavKey 导航契约 | `feature:*:api` | 供其它模块导航进来 |
 | 可复用设计组件 / 主题 / 图标 | `core:designsystem` | 零业务、零领域模型 |
 | 跨 feature 共享的业务 UI | `core:ui` | 消费 `core:model` 的组件 |
-| 数据层 Hilt Fake（替换生产绑定） | `core:data-test` | `@TestInstallIn` |
+| 数据层 Hilt Fake（替换生产绑定） | `core:data-test` | `@TestInstallIn` 整体替换 `DataModule`；**每往 `DataModule` 新增一个仓库，必须同步在此补 Fake 绑定**，否则仪器测试构建失败 |
 | 测试规则 / 测试替身 / 测试数据 | `core:testing` | 通用测试基建 |
 | WorkManager 同步 Worker | `sync:work` | 后台同步执行 |
 
 ### 6.3 归属决策要点（易混淆场景）
 
 - **`core:designsystem` vs `core:ui`**：前者纯设计（主题/通用组件/图标，**零业务、不依赖领域模型**）；后者是**跨 feature 共享的业务 UI**（消费 `core:model`）。只在一个 feature 内用的 UI 放 `feature:*:impl`，不上提。
-- **什么时候写 UseCase**：组合一个或多个 Repository 成一个聚焦操作时。模板约定 ViewModel 一律经 UseCase 取数，不直连 Repository。
+- **什么时候写 UseCase**：组合一个或多个 Repository 成一个聚焦操作时。模板约定 ViewModel 一律经 UseCase 取数，不直连 Repository。注意：这是**比 NiA 更严的约定**（NiA 的 ViewModel 如 `ForYouViewModel` 实际同时直注 Repository 与 UseCase），模板有意收紧以强制分层。UseCase 的真正价值在"组合多仓库 + 派生新领域模型"（如 NiA `GetFollowableTopicsUseCase` 用 `combine` 组合两个仓库），仅透传单仓库只是形式上的满足。
+- **Repository 返回什么**：一律返回领域模型流（`Flow<List<领域模型>>`），让领域模型从 database（`toModel()`）→ data → domain → ViewModel 贯穿传递。内置 `mymodel` 示例为极简演示返回了 `Flow<List<String>>`，业务开发请勿模仿，按领域模型贯穿处理。
 - **业务状态放哪**：放 ViewModel 的 `StateFlow`；**瞬态 UI 态**（如输入框文本）才用 Compose 本地 `mutableStateOf`。
 - **导航目的地放哪**：`feature:*:api` 的 NavKey；**不要**放 impl，否则别的模块导航进来就得依赖 impl。
 - **测试替身放哪**：替换生产 Hilt 绑定的 Fake 放 `core:data-test`；通用测试规则/工具放 `core:testing`；同步替身放 `sync:sync-test`。
@@ -299,13 +307,17 @@ data class Task(val uid: Int, val title: String)
 ```
 
 **2. 本地存储 → `core:database`**
-- 新增 `TaskEntity`（`@Entity`）+ `TaskDao`（`@Dao`，`getTasks(): Flow<List<TaskEntity>>` + `insertTask`）。
+- 新增 `TaskEntity`（`@Entity`，主键写法可参照 `MyModelEntity`：`@PrimaryKey(autoGenerate = true) var uid: Int = 0`）+ `TaskDao`（`@Dao`，`getTasks(): Flow<List<TaskEntity>>` + `insertTask`）。
 - 在 `AppDatabase` 注册 Entity 与 DAO（`version` +1 并写迁移，或新库）。
+- **在 `DatabaseModule` 为新 DAO 补 `@Provides`**（模板逐个 `@Provides` 暴露 DAO，漏掉这步 Hilt 注入会失败）。
 - 提供 `TaskEntity.toModel(): Task` 映射。
+- 注意：模板示例 `MyModelDao.getMyModels()` 带 `ORDER BY uid DESC LIMIT 10`（演示用限制），新业务 DAO 按需决定排序与条数。
 
 **3. 网络层 → `core:network`**
 - 新增网络 DTO `NetworkTask`（`@Serializable`，与领域模型分离）。
 - 在网络数据源接口加 `fetchTasks()`，Retrofit 实现加对应 `@GET`。
+- 网络层的 `BASE_URL` 来自 `local.properties` 的 `BACKEND_URL`（由 `core:network/build.gradle.kts` 注入 BuildConfig）；接入真实后端前需在 `local.properties` 添加 `BACKEND_URL=https://your.backend/`（须以 `/` 结尾），否则同步始终失败，属预期行为。
+- 若新建独立的网络数据源接口（而非扩展现有接口），记得在 `NetworkModule` 补对应 `@Binds`。
 
 **4. 仓库层 → `core:data`（离线优先）**
 ```kotlin
@@ -322,6 +334,7 @@ class DefaultTaskRepository @Inject constructor(
 }
 ```
 - 在 `DataModule` 用 `@Binds` 绑定 `DefaultTaskRepository → TaskRepository`。
+- **勿忘测试联动**：新增仓库绑定后必须在 `TestDataModule` 补对应 Fake 绑定（详见步骤 10），否则仪器测试构建失败。
 - 实现 `Syncable` 后，**还需**把该仓库注入 `SyncWorker`（`sync:work`）并在 `doWork` 调 `sync()` 才会参与同步（非自动；多仓库可用 `awaitAll` 并行）。
 
 **5. UseCase → `core:domain`**
@@ -331,28 +344,38 @@ class GetTasksUseCase @Inject constructor(private val repo: TaskRepository) {
 }
 ```
 
-**6. feature api → 新建 `feature:task:api`**
+> 本例为单仓库透传（与内置 `mymodel` 示例相同）。实际业务请优先"组合多仓库 / 派生新模型"（见 6.3 UseCase 条目）。
+
+**6. 注册模块 → `settings.gradle.kts`**（先于步骤 7/8：不 include 则 `projects.feature.task.*` 访问器不存在，后续 `build.gradle.kts` 无法编译）
+```kotlin
+include(":feature:task:api")
+include(":feature:task:impl")
+```
+include 后执行一次 Gradle Sync，即可使用 `projects.feature.task.api` / `projects.feature.task.impl` 访问器。
+
+**7. feature api → 新建 `feature:task:api`**
 - 应用 `template.android.feature.api` 约定插件。
 - 定义 `@Serializable data object TaskList : NavKey`（导航契约）。
 
-**7. feature impl → 新建 `feature:task:impl`**
+**8. feature impl → 新建 `feature:task:impl`**
 - 应用 `template.android.feature.impl` + `template.android.library.compose` + `template.android.library.jacoco` 约定插件。
 - 约定插件已注入公共依赖（`core:ui`、lifecycle、navigation3）；**还需在 `build.gradle.kts` 显式声明本 feature 特有依赖**：`implementation(projects.core.domain)`（UseCase）、`implementation(projects.core.data)`（注入 `SyncManager`）、`implementation(projects.feature.task.api)`，以及 compose/material3 等。
 - `TaskViewModel`（依赖 UseCase + SyncManager，暴露 StateFlow）。
 - `TaskScreen`（`collectAsStateWithLifecycle` + `UiStateView` 处理四态）。
 - `EntryProvider`（`entry<TaskList> { TaskScreen(...) }` 导航注册）。
 
-**8. 组装 → `app`**
+**9. 组装 → `app`**
 - `app` 依赖 `feature:task:api` 与 `feature:task:impl`。
 - 在 `MainNavigation` 的 `entryProvider { ... }` 里加入 `TaskEntryProvider(navigator)`；如需作为顶层目的地，加入 `rememberNavigationState` 的 `topLevelKeys`。
+- 新 feature 如有界面文案，在 `feature:task:impl/src/main/res/values/` 添加 `strings.xml`（参照 `feature:mymodel:impl`）。
+- 新增顶层目的地后，记得跟进 `app` 的 `NavigationTest`（仪器测试）。
 
-**9. 注册模块 → `settings.gradle.kts`**
-```kotlin
-include(":feature:task:api")
-include(":feature:task:impl")
-```
+**10. 测试联动 → `core:data-test` / `core:testing`（必做，非可选）**
+- 新增 `FakeTaskRepository`（实现 `TaskRepository` 接口，参照 `FakeMyModelRepository`），并在 `TestDataModule` 补对应 `@Binds`。原因：`TestDataModule` 以 `@TestInstallIn` **整体替换** `DataModule`，步骤 4 新增的 `TaskRepository` 绑定不会自动进入测试图，漏掉这步所有现存仪器测试都会构建失败。
+- 单元测试如需仓库替身，参照 `TestMyModelRepository` 在 `core:testing` 添加 `TestTaskRepository`。
 
 > 约定插件（`template.android.feature.api/impl`）已自动注入 feature 公共依赖（`core:ui`、lifecycle、navigation3 等），无需在每个 feature 里手写。
+> 开发完成后运行 `python gen_structure.py` 更新 `WORKSPACE_STRUCTURE.md`，保持结构文档与新模块一致。
 
 ---
 
