@@ -10,20 +10,42 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val LightColorScheme = lightColorScheme(
+    primary = NeutralPrimaryLight,
+    onPrimary = NeutralOnPrimaryLight,
+    primaryContainer = NeutralPrimaryContainerLight,
+    onPrimaryContainer = NeutralOnPrimaryContainerLight,
+    secondary = NeutralSecondaryLight,
+    onSecondary = NeutralOnSecondaryLight,
+    tertiary = NeutralTertiaryLight,
+    background = NeutralBackgroundLight,
+    onBackground = NeutralOnBackgroundLight,
+    surface = NeutralSurfaceLight,
+    onSurface = NeutralOnSurfaceLight,
+    surfaceVariant = NeutralSurfaceVariantLight,
+    onSurfaceVariant = NeutralOnSurfaceVariantLight,
+    outline = NeutralOutlineLight,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val DarkColorScheme = darkColorScheme(
+    primary = NeutralPrimaryDark,
+    onPrimary = NeutralOnPrimaryDark,
+    primaryContainer = NeutralPrimaryContainerDark,
+    onPrimaryContainer = NeutralOnPrimaryContainerDark,
+    secondary = NeutralSecondaryDark,
+    onSecondary = NeutralOnSecondaryDark,
+    tertiary = NeutralTertiaryDark,
+    background = NeutralBackgroundDark,
+    onBackground = NeutralOnBackgroundDark,
+    surface = NeutralSurfaceDark,
+    onSurface = NeutralOnSurfaceDark,
+    surfaceVariant = NeutralSurfaceVariantDark,
+    onSurfaceVariant = NeutralOnSurfaceVariantDark,
+    outline = NeutralOutlineDark,
 )
 
 @Composable
-fun MyApplicationTheme(
+fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
@@ -41,6 +63,7 @@ fun MyApplicationTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }

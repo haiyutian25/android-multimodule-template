@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import android.template.core.designsystem.theme.MyApplicationTheme
+import android.template.core.designsystem.theme.AppTheme
 
 /**
  * A centered circular loading indicator.
@@ -22,7 +22,7 @@ fun LoadingIndicator(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 private fun LoadingIndicatorPreview() {
-    MyApplicationTheme {
+    AppTheme {
         LoadingIndicator(modifier = Modifier.fillMaxSize())
     }
 }

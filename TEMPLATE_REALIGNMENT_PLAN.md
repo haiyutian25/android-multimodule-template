@@ -192,13 +192,13 @@ feature:xxx:impl ──► core:ui ──► core:designsystem ──► Compose
 - [x] A. 新建 `core:designsystem` 分层 ✅（2026-08-26）
 - [x] B. 可复用状态组件（Loading/Error/Empty）✅（2026-08-26）
 - [x] C. `MyModelScreen` 三态处理 ✅（2026-08-26）
-- [ ] D. design tokens 完善 + 主题清理
-- [ ] E. `MyModelScreen` 组件升级（LazyColumn + strings）
-- [ ] F. 统一状态模型
+- [x] D. design tokens 完善 + 主题清理 ✅（2026-08-26）
+- [x] E. `MyModelScreen` 组件升级（LazyColumn + strings）✅（2026-08-26）
+- [x] F. 统一状态模型 ✅（2026-08-26）
 - [ ] G. 图标集中管理（P2）
 - [ ] H. `core:ui` 结构预留（P2）
 
-> P0 已实施完成，见下方落地记录；P1/P2 待用户勾选后实施。
+> P0 + P1 已实施完成，见下方落地记录；P2 待用户勾选后实施。
 
 ---
 
@@ -221,3 +221,27 @@ feature:xxx:impl ──► core:ui ──► core:designsystem ──► Compose
 
 - 主工程 `assembleDebug`、`testDebugUnitTest` 通过；`core:designsystem` 正常产出 AAR。
 - 临时副本运行 `customizer.sh`：designsystem 包名迁移为 `com.example.todo.core.designsystem`，无 `android.template`/`MyModel` 残留，定制副本（`feature:todoitem`）`assembleDebug` + `testDebugUnitTest` 通过。
+
+---
+
+## 8. 落地记录（P1：D/E/F）
+
+**改动文件：**
+
+1. **D · design tokens 完善 + 主题清理**（`core:designsystem/theme/`）：
+   - `Theme.kt`：`MyApplicationTheme` → **`AppTheme`**（泛化名），完整 light/dark `ColorScheme`，接入 `shapes`。
+   - `Color.kt`：IDE 默认紫 → **中性 slate 配色**（light + dark 全套 token）。
+   - `Type.kt`：补全完整 Material 3 `Typography`（15 种文字样式）。
+   - 新增 `Shape.kt`（`Shapes` 圆角刻度）、`Spacing.kt`（`Spacing` 间距刻度）。
+   - 同步更新全部 `AppTheme` 引用：`MainActivity` + designsystem 三个组件 Preview。
+2. **E · `MyModelScreen` 组件升级**：
+   - 列表 `forEach` → **`LazyColumn`**。
+   - 硬编码字符串 → **string resources**（新增 `feature/mymodel/impl/src/main/res/values/strings.xml`：`save_label`、`saved_item_format`）。
+   - 间距改用 `Spacing` token（`Spacing.l`/`Spacing.m`）。
+3. **F · 统一状态模型**：移除死代码 `core:common/result/Result.kt`（全仓无业务引用，`SyncUtilities` 用的是 `kotlin.Result`），`designsystem:UiState` 成为唯一状态模型，对齐 NiA 无 Result 包装的模式；`core:common` 保留协程调度器。
+
+**验证：**
+
+- 主工程 `assembleDebug`、`testDebugUnitTest` 通过。
+- 临时副本运行 `customizer.sh`：strings.xml 随 feature 目录迁移且内容完整，无 `android.template`/`MyModel`/`MyApplicationTheme` 残留，定制副本（`feature:todoitem`）`assembleDebug` + `testDebugUnitTest` 通过。
+- 注：定制副本首次构建报原生内存分配失败（`malloc` OOM），系本会话 daemon 堆积所致，`gradlew --stop` 后重试通过，非代码问题。

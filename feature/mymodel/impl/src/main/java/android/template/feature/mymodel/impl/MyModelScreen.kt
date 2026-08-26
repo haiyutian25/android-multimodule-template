@@ -1,7 +1,8 @@
 package android.template.feature.mymodel.impl
 
 import android.template.core.designsystem.component.UiStateView
-import android.template.core.designsystem.theme.MyApplicationTheme
+import android.template.core.designsystem.theme.AppTheme
+import android.template.core.designsystem.theme.Spacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -20,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -63,8 +67,8 @@ private fun MyModelInput(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(bottom = Spacing.l),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         TextField(
             modifier = Modifier.weight(1f),
@@ -73,7 +77,7 @@ private fun MyModelInput(
         )
 
         Button(modifier = Modifier.width(96.dp), onClick = { onSave(nameMyModel) }) {
-            Text("Save")
+            Text(stringResource(R.string.save_label))
         }
     }
 }
@@ -83,9 +87,9 @@ private fun MyModelList(
     items: List<String>,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
-        items.forEach {
-            Text("Saved item: $it")
+    LazyColumn(modifier = modifier) {
+        items(items) { item ->
+            Text(text = stringResource(R.string.saved_item_format, item))
         }
     }
 }
@@ -95,7 +99,7 @@ private fun MyModelList(
 @Preview(showBackground = true)
 @Composable
 private fun MyModelInputPreview() {
-    MyApplicationTheme {
+    AppTheme {
         MyModelInput(onSave = {})
     }
 }
@@ -103,7 +107,7 @@ private fun MyModelInputPreview() {
 @Preview(showBackground = true, widthDp = 340)
 @Composable
 private fun MyModelListPreview() {
-    MyApplicationTheme {
+    AppTheme {
         MyModelList(items = listOf("Compose", "Room", "Kotlin"))
     }
 }

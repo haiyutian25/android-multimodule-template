@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import android.template.core.designsystem.theme.MyApplicationTheme
+import android.template.core.designsystem.theme.AppTheme
 
 /**
  * Displays an empty-state message.
@@ -25,7 +25,7 @@ fun EmptyView(
 @Preview(showBackground = true)
 @Composable
 private fun EmptyViewPreview() {
-    MyApplicationTheme {
+    AppTheme {
         EmptyView()
     }
 }

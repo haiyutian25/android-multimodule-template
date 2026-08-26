@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import android.template.core.designsystem.theme.MyApplicationTheme
+import android.template.core.designsystem.theme.AppTheme
 
 /**
  * Displays an error message together with a retry action.
@@ -40,7 +40,7 @@ fun ErrorView(
 @Preview(showBackground = true)
 @Composable
 private fun ErrorViewPreview() {
-    MyApplicationTheme {
+    AppTheme {
         ErrorView(message = "Something went wrong", onRetry = {})
     }
 }
