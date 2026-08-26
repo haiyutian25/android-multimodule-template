@@ -245,7 +245,7 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 ⑨ settings.gradle.kts → include 新模块
 ```
 
-> 建议每完成一层就跑 `gradlew assembleDebug` + `testDebugUnitTest`，尽早暴露问题。
+> 建议每完成一层就跑 `gradlew assembleDebug` + `testDebugUnitTest`，尽早暴露问题。若仓库需同步（实现 `Syncable`），还要把它注入 `SyncWorker`（`sync:work`）并在 `doWork` 调 `sync()` 才纳入同步（非自动）。
 
 ### 6.2 模块归属速查表（什么代码放哪个模块）
 
@@ -255,7 +255,7 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 | Room Entity / DAO / Database / `toModel` 映射 | `core:database` | 本地持久化 |
 | 网络 DTO / Retrofit 接口 / 网络数据源实现 | `core:network` | 只负责网络，不碰本地 |
 | Repository 接口 + 离线优先实现 | `core:data` | UI 的唯一数据入口 |
-| 同步能力（仓库实现 `Syncable`） | `core:data` | 实现后自动被 `SyncWorker` 纳入同步 |
+| 同步能力（仓库需同步） | `core:data` + `sync:work` | 仓库实现 `Syncable.syncWith`；**还需**注入 `SyncWorker` 并调 `sync()`（非自动；多仓库可 `awaitAll` 并行） |
 | UseCase（组合 Repository 的聚焦操作） | `core:domain` | ViewModel 只依赖它 |
 | ViewModel | `feature:*:impl` | 依赖 UseCase + SyncManager |
 | Compose Screen / 本 feature 私有组件 | `feature:*:impl` | 业务界面 |
@@ -322,7 +322,7 @@ class DefaultTaskRepository @Inject constructor(
 }
 ```
 - 在 `DataModule` 用 `@Binds` 绑定 `DefaultTaskRepository → TaskRepository`。
-- 实现 `Syncable` 后，`SyncWorker` 会自动把它纳入同步。
+- 实现 `Syncable` 后，**还需**把该仓库注入 `SyncWorker`（`sync:work`）并在 `doWork` 调 `sync()` 才会参与同步（非自动；多仓库可用 `awaitAll` 并行）。
 
 **5. UseCase → `core:domain`**
 ```kotlin
