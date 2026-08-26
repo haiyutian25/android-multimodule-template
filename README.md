@@ -7,22 +7,30 @@ This template is compatible with the latest **stable** version of Android Studio
 
 ## Features
 
+* Offline-first data layer (Room as the single source of truth, background sync via WorkManager)
 * Room Database
 * Hilt
-* ViewModel, read+write
-* UI in Compose, list + write (Material3)
-* Navigation
+* Domain layer (use cases) + ViewModel, read+write
+* UI in Compose, list + write (Material3), with a reusable design system
+* Navigation3
 * Repository and data source
-* Kotlin Coroutines and Flow
+* Kotlin Coroutines and Flow (unidirectional data flow)
 * Unit tests
 * UI tests using fake data with Hilt
+* Macrobenchmark + Baseline Profile
+
+See [DEVELOPMENT_MANUAL.md](DEVELOPMENT_MANUAL.md) for the full architecture guide.
 
 ## Modules
 The following module types are used:
 
-- `core` modules contain objects that are used by one or more feature modules.
-- `feature-mymodel` contains the `mymodel` feature.
-- `feature-mymodel-navigation` contains the navigation keys for the `mymodel` feature. This allows other feature modules to navigate to `mymodel`'s screens without creating a dependency on `feature-mymodel`. An alternative approach is to use an [api / implementation split](https://developer.android.com/topic/modularization/patterns#dependency_injection).
+- `app` — the application shell (single activity, navigation host, theme).
+- `core:*` — shared building blocks used by one or more feature modules (`model`, `database`, `network`, `data`, `domain`, `designsystem`, `ui`, `navigation`, `common`, `testing`, `data-test`).
+- `feature:mymodel:impl` — the `mymodel` feature (UI + ViewModel).
+- `feature:mymodel:api` — the navigation keys for the `mymodel` feature. This lets other modules navigate to `mymodel`'s screens without depending on `feature:mymodel:impl` (an [api / implementation split](https://developer.android.com/topic/modularization/patterns#dependency_injection)).
+- `sync:work` — WorkManager-based sync (`sync:sync-test` provides sync test doubles).
+- `benchmarks` — Macrobenchmark + Baseline Profile generation.
+- `ui-test-hilt-manifest` — a Hilt host activity for UI tests.
 
 Check the [modularization guidance](https://developer.android.com/topic/modularization) for more information.
 

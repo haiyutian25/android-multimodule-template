@@ -129,6 +129,8 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
 
 - DataStore 用户偏好、设计系统（core-ui 保持现状）、CI、demo/prod 双风味、Firebase/分析/通知等业务能力、自定义 Lint 规则
 
+> 注：上列"设计系统（core-ui 保持现状）"为**初期决策**，后续已在 `TEMPLATE_REALIGNMENT_PLAN.md` 中重新评估并实施——新建 `core:designsystem` 分层与可复用状态组件，`core:ui` 亦调整为共享业务 UI 层。其余各项维持"不做"。
+
 ### 注意事项
 
 1. 每次引入一个模式后，同步更新 `customizer.sh` 保证新结构可被定制脚本处理
