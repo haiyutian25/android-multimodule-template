@@ -25,7 +25,6 @@ class DefaultMyModelRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : MyModelRepository {
 
-    // Reads are exclusively from local storage to support offline access.
     override val myModels: Flow<List<String>> =
         myModelDao.getMyModels().map { items -> items.map { it.toModel().name } }
 
