@@ -223,11 +223,58 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 
 ---
 
-## 六、如何开发新业务功能（重点）
+## 六、如何开发（流程 + 模块归属）
 
-以新增一个 **`task`（任务）** 功能为例，演示完整流程。有两条路径：
+本章回答三个问题：**按什么流程开发**、**什么代码放哪个模块**、**易混淆时怎么决策**；最后给出两条落地路径（`customizer.sh` 一键生成 / 手动逐层添加，以新增 `task` 功能为例）。
 
-### 路径 A：用 `customizer.sh` 一键生成（推荐用于新项目起步）
+### 6.1 总体开发流程（自底向上）
+
+**原则：自底向上逐层构建**——先写被依赖的下层，再写依赖它的上层，保证每一步其依赖都已就绪。依赖方向自上而下单向（见第二章）。
+
+```
+新增一个业务功能，自底向上依次经过：
+
+① core:model         → 领域模型（纯数据类，无 Android 依赖）
+② core:database      → Entity + DAO + 注册 Database（+ toModel 映射）
+③ core:network       → 网络 DTO + Retrofit 数据源
+④ core:data          → Repository（离线优先）+ DataModule @Binds 绑定
+⑤ core:domain        → UseCase（组合 Repository 的单一操作）
+⑥ feature:xxx:api    → NavKey 导航契约（@Serializable）
+⑦ feature:xxx:impl   → ViewModel + Screen + EntryProvider
+⑧ app                → MainNavigation 组装 + 添加模块依赖
+⑨ settings.gradle.kts → include 新模块
+```
+
+> 建议每完成一层就跑 `gradlew assembleDebug` + `testDebugUnitTest`，尽早暴露问题。
+
+### 6.2 模块归属速查表（什么代码放哪个模块）
+
+| 你要写的东西 | 放哪个模块 | 说明 |
+|---|---|---|
+| 领域模型（纯数据类，无 Android 依赖） | `core:model` | 最底层，被各层共享 |
+| Room Entity / DAO / Database / `toModel` 映射 | `core:database` | 本地持久化 |
+| 网络 DTO / Retrofit 接口 / 网络数据源实现 | `core:network` | 只负责网络，不碰本地 |
+| Repository 接口 + 离线优先实现 | `core:data` | UI 的唯一数据入口 |
+| 同步能力（仓库实现 `Syncable`） | `core:data` | 实现后自动被 `SyncWorker` 纳入同步 |
+| UseCase（组合 Repository 的聚焦操作） | `core:domain` | ViewModel 只依赖它 |
+| ViewModel | `feature:*:impl` | 依赖 UseCase + SyncManager |
+| Compose Screen / 本 feature 私有组件 | `feature:*:impl` | 业务界面 |
+| NavKey 导航契约 | `feature:*:api` | 供其它模块导航进来 |
+| 可复用设计组件 / 主题 / 图标 | `core:designsystem` | 零业务、零领域模型 |
+| 跨 feature 共享的业务 UI | `core:ui` | 消费 `core:model` 的组件 |
+| 数据层 Hilt Fake（替换生产绑定） | `core:data-test` | `@TestInstallIn` |
+| 测试规则 / 测试替身 / 测试数据 | `core:testing` | 通用测试基建 |
+| WorkManager 同步 Worker | `sync:work` | 后台同步执行 |
+
+### 6.3 归属决策要点（易混淆场景）
+
+- **`core:designsystem` vs `core:ui`**：前者纯设计（主题/通用组件/图标，**零业务、不依赖领域模型**）；后者是**跨 feature 共享的业务 UI**（消费 `core:model`）。只在一个 feature 内用的 UI 放 `feature:*:impl`，不上提。
+- **什么时候写 UseCase**：组合一个或多个 Repository 成一个聚焦操作时。模板约定 ViewModel 一律经 UseCase 取数，不直连 Repository。
+- **业务状态放哪**：放 ViewModel 的 `StateFlow`；**瞬态 UI 态**（如输入框文本）才用 Compose 本地 `mutableStateOf`。
+- **导航目的地放哪**：`feature:*:api` 的 NavKey；**不要**放 impl，否则别的模块导航进来就得依赖 impl。
+- **测试替身放哪**：替换生产 Hilt 绑定的 Fake 放 `core:data-test`；通用测试规则/工具放 `core:testing`；同步替身放 `sync:sync-test`。
+
+### 6.4 路径 A：用 `customizer.sh` 一键生成（推荐用于新项目起步）
 
 如果这是你的新项目起点，直接运行定制脚本，把模板的 `mymodel` 示例改成你的业务模型：
 
@@ -242,9 +289,9 @@ bash customizer.sh com.example.todo TodoItem TodoApp \
 - 可选参数：`--entity-field` / `--fake-data` / `--database-class` / `--main-activity` / `--query-method` / `--insert-method` / `--add-method`
 - 脚本会重命名包、模型、模块目录、各层方法名，产出一个可直接开发的业务工程。
 
-### 路径 B：在现有模板上手动添加新 feature
+### 6.5 路径 B：在现有模板上手动添加新 feature（完整示例）
 
-按"自底向上"顺序逐层添加：
+按 6.1 的"自底向上"顺序逐层添加：
 
 **1. 领域模型 → `core:model`**
 ```kotlin
