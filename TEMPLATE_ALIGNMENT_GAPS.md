@@ -199,3 +199,30 @@
 
 - 主工程 `assembleDebug`、`testDebugUnitTest`、`:app:assembleDebugAndroidTest` 全部构建/通过（`core:data-test` 的 Hilt 代码生成正常）。
 - 临时副本运行 `customizer.sh`：`FakeMyModelRepository`→`FakeTodoItemRepository`、`HiltComponentActivity` 包名重写为 `com.example.todo.uitesthiltmanifest`，无 `android.template` 残留，`test-app` 不再出现，定制副本 `assembleDebug` + `testDebugUnitTest` 通过。
+
+---
+
+## 已确认对齐的架构模式：单向数据流（UDF）+ MVVM ✅（2026-08-26 核查通过）
+
+> 本节为**已对齐确认项**（非差距项）：经彻底核查，本模板与 NiA 一致，采用完整、闭合的 UDF + MVVM，无违反点。
+
+**模式特征（与 NiA 一致）：**
+
+- **ViewModel 暴露 StateFlow**：`MyModelViewModel` 的 `uiState`/`isSyncing` 均为 `StateFlow`，经 `stateIn(viewModelScope, WhileSubscribed(5000), …)` 暴露。
+- **Compose 用 `collectAsStateWithLifecycle` 消费**：`MyModelScreen` 收集 `uiState` 与 `isSyncing`。
+- **状态下行、事件上行**：状态经 StateFlow 下发；事件经 lambda 回调（`onSave = viewModel::addMyModel`、`onRetry = viewModel::retry`）回到 ViewModel。
+- **有状态/无状态分层**：`MyModelScreen`(有状态，持 ViewModel) → `MyModelInput`/`MyModelList`(无状态，纯渲染)。
+
+**反向排查（均通过，无违反）：**
+
+| 检查项 | 结果 |
+|---|---|
+| Compose 是否直连数据层（注入 Repository/UseCase/SyncManager） | ❌ 无 |
+| 业务状态是否误放 Compose 本地 | ❌ 无（唯一 `mutableStateOf` 是输入框瞬态文本，属正常 UI 态） |
+| Compose 是否绕过 ViewModel 直接 `collect` Flow | ❌ 无 |
+| `isSyncing` 是否走 ViewModel | ✅ 走 `viewModel.isSyncing`，未直连 `SyncManager` |
+| 是否唯一 ViewModel / 唯一消费点 | ✅ 仅 `MyModelViewModel` + `MyModelScreen` |
+
+**与 NiA 的唯一差异（非差距）**：NiA 用 `core:common:Result.asResult()` 包装 Flow 再映射 UiState；本模板在 P1-F 移除了 `Result`，由 ViewModel 直接 `map`/`catch` 映射到 `UiState`（更简洁，效果等价）。
+
+**结论**：数据层 → ViewModel（StateFlow）→ Compose（collectAsStateWithLifecycle）→ 事件回调回 ViewModel，是一条干净、闭合的单向数据流，且为唯一 MVVM 通路，无旁路、无违反，无需改动。
