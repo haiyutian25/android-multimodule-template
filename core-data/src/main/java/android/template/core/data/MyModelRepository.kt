@@ -1,8 +1,12 @@
 package android.template.core.data
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import android.template.core.common.AppDispatchers.IO
+import android.template.core.common.Dispatcher
 import android.template.core.database.MyModelDao
 import android.template.core.database.MyModelEntity
 import android.template.core.database.toModel
@@ -17,6 +21,7 @@ interface MyModelRepository : Syncable {
 class DefaultMyModelRepository @Inject constructor(
     private val myModelDao: MyModelDao,
     private val networkDataSource: MyModelNetworkDataSource,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : MyModelRepository {
 
     // Reads are exclusively from local storage to support offline access.
@@ -34,9 +39,11 @@ class DefaultMyModelRepository @Inject constructor(
      *  since the last sync from [networkDataSource] and upsert them into the local database.
      */
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean = suspendRunCatching {
-        if (myModelDao.getMyModels().first().isEmpty()) {
-            networkDataSource.fetchMyModels().forEach { model ->
-                myModelDao.insertMyModel(MyModelEntity(name = model.name))
+        withContext(ioDispatcher) {
+            if (myModelDao.getMyModels().first().isEmpty()) {
+                networkDataSource.fetchMyModels().forEach { model ->
+                    myModelDao.insertMyModel(MyModelEntity(name = model.name))
+                }
             }
         }
     }.isSuccess

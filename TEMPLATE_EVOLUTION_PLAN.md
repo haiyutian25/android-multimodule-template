@@ -103,15 +103,31 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
   - 参考：`nowinandroid/core/data/src/main/kotlin/.../di/DataSyncModule.kt`、`nowinandroid/sync/work/`
 - [x] **新增 `core-domain` UseCase 层**（2026-08-26 完成：`GetMyModelsUseCase`/`AddMyModelUseCase`，ViewModel 改为仅依赖 UseCase + SyncManager）
   - 参考：`nowinandroid/core/domain/`
-- [ ] **DataStore 用户偏好**（可选）：Proto DataStore 或普通 Preferences DataStore
-  - 参考：`nowinandroid/core/datastore/`
 
 ### 第三阶段：工程化
 
 - [x] **`build-logic` 约定插件**：消除各模块重复的 `build.gradle.kts` 配置（2026-08-26 完成：8 个约定插件 `template.android.application(.compose)`、`template.android.library(.compose)`、`template.android.test`、`template.android.room`、`template.android.hilt`、`template.jvm.library`，集中管理 compileSdk/minSdk/Java 17/Compose BOM/Room schema/Hilt 依赖）
   - 参考：`nowinandroid/build-logic/convention/`
 - [ ] **NetworkMonitor / 网络状态感知**（可选）
-- [ ] **截图测试、自定义 Lint 规则、Macrobenchmark**（按需）
+
+### 第四阶段：补齐剩余差距
+
+- [x] **新建 `core-common` 工具模块**：协程调度器限定符（`@Dispatcher` IO/Default、`@ApplicationScope`）+ `Result` 封装（Success/Error/Loading + `Flow.asResult()`）（2026-08-26 完成：纯 JVM 模块 + Hilt，Hilt 约定插件新增 JVM 分支注入 hilt-core，`DefaultMyModelRepository.syncWith` 接入 `@Dispatcher(IO)`）
+  - 参考：`nowinandroid/core/common/`
+- [ ] **低成本构建改进**：`settings.gradle.kts` 开启 `TYPESAFE_PROJECT_ACCESSORS` + JDK 17 兼容性检查
+  - 参考：`nowinandroid/settings.gradle.kts`
+- [ ] **新建 `core-network` 真实网络层**：Retrofit + OkHttp + kotlinx-serialization，替换 `MyModelNetworkDataSource` 假实现，让离线优先同步真正从网络拉取
+  - 参考：`nowinandroid/core/network/`
+- [ ] **测试基建**：测试替身（core-testing）、截图测试（Roborazzi）、sync-test
+  - 参考：`nowinandroid/core/testing/`、`core/screenshot-testing/`、`sync/sync-test/`
+- [ ] **Benchmark + Baseline Profile**：Macrobenchmark 模块，生成 Baseline Profile 优化启动
+  - 参考：`nowinandroid/benchmarks/`
+- [ ] **代码风格 Spotless + ktlint**（仅记录，暂不实施）
+  - 参考：`nowinandroid/spotless/`、`build-logic/convention/src/main/kotlin/com/google/samples/apps/nowinandroid/Spotless.kt`
+
+### 明确不做（已确认）
+
+- DataStore 用户偏好、设计系统（core-ui 保持现状）、CI、demo/prod 双风味、Firebase/分析/通知等业务能力、自定义 Lint 规则
 
 ### 注意事项
 

@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 rootProject.name = "Multimodule template"
 
 include(":app")
+include(":core-common")
 include(":core-data")
 include(":core-database")
 include(":core-domain")

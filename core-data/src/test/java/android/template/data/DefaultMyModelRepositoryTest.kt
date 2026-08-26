@@ -1,5 +1,6 @@
 package android.template.data
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -23,7 +24,7 @@ class DefaultMyModelRepositoryTest {
 
     @Test
     fun myModels_newItemSaved_itemIsReturned() = runTest {
-        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource())
+        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource(), Dispatchers.Unconfined)
 
         repository.add("Repository")
 
@@ -32,7 +33,7 @@ class DefaultMyModelRepositoryTest {
 
     @Test
     fun syncWith_emptyDatabase_seedsRemoteData() = runTest {
-        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource())
+        val repository = DefaultMyModelRepository(FakeMyModelDao(), FakeMyModelNetworkDataSource(), Dispatchers.Unconfined)
 
         val result = repository.syncWith(FakeSynchronizer())
 
