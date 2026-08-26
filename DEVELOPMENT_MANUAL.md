@@ -60,6 +60,8 @@
         core:model（纯领域模型，最底层，被各层共享）
 ```
 
+> 上图为主数据流。此外：`feature:*:impl` 还直接依赖 `core:data`（注入 `SyncManager`）、并经约定插件依赖 `core:ui`（→ `core:designsystem`）；`feature:*:api` 依赖 `core:navigation`（NavKey）；`sync:work` 依赖 `core:data` 承担后台同步。
+
 **依赖规则**：自上而下单向依赖，**禁止反向依赖、禁止循环依赖**。`core:model` 是最底层的纯领域模型，不依赖任何模块。
 
 ### 核心原则
@@ -288,7 +290,7 @@ class GetTasksUseCase @Inject constructor(private val repo: TaskRepository) {
 
 **7. feature impl → 新建 `feature:task:impl`**
 - 应用 `template.android.feature.impl` + `template.android.library.compose` + `template.android.library.jacoco` 约定插件。
-- 约定插件已注入公共依赖（`core:ui`、lifecycle、navigation3）；**还需在 `build.gradle.kts` 显式声明本 feature 特有依赖**：`implementation(projects.core.domain)`（UseCase）、`implementation(projects.feature.task.api)`，以及 compose/material3 等。
+- 约定插件已注入公共依赖（`core:ui`、lifecycle、navigation3）；**还需在 `build.gradle.kts` 显式声明本 feature 特有依赖**：`implementation(projects.core.domain)`（UseCase）、`implementation(projects.core.data)`（注入 `SyncManager`）、`implementation(projects.feature.task.api)`，以及 compose/material3 等。
 - `TaskViewModel`（依赖 UseCase + SyncManager，暴露 StateFlow）。
 - `TaskScreen`（`collectAsStateWithLifecycle` + `UiStateView` 处理四态）。
 - `EntryProvider`（`entry<TaskList> { TaskScreen(...) }` 导航注册）。
