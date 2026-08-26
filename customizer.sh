@@ -128,10 +128,10 @@ do
   fi
 done
 
-# Rename package and imports
+# Rename package and imports (also rewrites the "android.template" string literal used by
+# the benchmarks module as the package name of the app under test)
 echo "Renaming packages to $PACKAGE"
-find ./ -type f -name "*.kt" -exec sed -i.bak "s/package android.template/package $PACKAGE/g" {} \;
-find ./ -type f -name "*.kt" -exec sed -i.bak "s/import android.template/import $PACKAGE/g" {} \;
+find ./ -type f -name "*.kt" -exec sed -i.bak "s/android\.template/$PACKAGE/g" {} \;
 
 # Gradle files
 find ./ -type f -name "*.kts" -exec sed -i.bak "s/android.template/$PACKAGE/g" {} \;

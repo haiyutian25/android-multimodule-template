@@ -120,7 +120,7 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
   - 参考：`nowinandroid/core/network/`
 - [x] **测试基建**：测试替身（core-testing）、截图测试（Roborazzi）、sync-test（2026-08-26 完成测试替身 + sync-test：`core-testing` 新增 `MainDispatcherRule`/`TestMyModelRepository`/`TestSyncManager`/`TestDispatcher(s)Module`，新建 `sync-test`（`NeverSyncingSyncManager` + `TestSyncModule` 替换生产同步绑定），`SyncModule`/`WorkManagerSyncManager` 放开为 public，ViewModel 测试对齐 NiA 的 stateIn 测试模式；**Roborazzi 截图测试未实施**）
   - 参考：`nowinandroid/core/testing/`、`core/screenshot-testing/`、`sync/sync-test/`
-- [ ] **Benchmark + Baseline Profile**：Macrobenchmark 模块，生成 Baseline Profile 优化启动
+- [x] **Benchmark + Baseline Profile**：Macrobenchmark 模块，生成 Baseline Profile 优化启动（2026-08-26 完成：新建 `benchmarks` 模块含 `StartupBenchmark` + `StartupBaselineProfile`，app 接入 baselineprofile 插件 + profileinstaller，GMD `pixel6Api33`；customizer 的 .kt 包替换改为通用以重命名 `PACKAGE_NAME`）。**注意**：① baselineprofile/macrobenchmark 需用 `1.5.0-alpha01`（1.4.0 不兼容 AGP 9.2.1），与"稳定版"偏好冲突；② 运行/生成需模拟器或真机，`automaticGenerationDuringBuild=false` 保证常规构建不受影响
   - 参考：`nowinandroid/benchmarks/`
 - [ ] **代码风格 Spotless + ktlint**（仅记录，暂不实施）
   - 参考：`nowinandroid/spotless/`、`build-logic/convention/src/main/kotlin/com/google/samples/apps/nowinandroid/Spotless.kt`
