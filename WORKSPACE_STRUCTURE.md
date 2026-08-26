@@ -34,7 +34,6 @@ architecture-templates-multimodule/
 ├── ui-test-hilt-manifest/   ← Gradle 模块
 ├── build.gradle.kts
 ├── compose_compiler_config.conf
-├── CONTRIBUTING.md
 ├── customizer.sh
 ├── DEVELOPMENT_MANUAL.md
 ├── gradle.properties
