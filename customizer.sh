@@ -136,6 +136,9 @@ find ./ -type f -name "*.kt" -exec sed -i.bak "s/android\.template/$PACKAGE/g" {
 # Gradle files
 find ./ -type f -name "*.kts" -exec sed -i.bak "s/android.template/$PACKAGE/g" {} \;
 
+# Compose compiler stability config (references the model package)
+find ./ -type f -name "compose_compiler_config.conf" -exec sed -i.bak "s/android\.template/$PACKAGE/g" {} \;
+
 # Rename model
 echo "Renaming model to $DATAMODEL"
 find ./ -type f -name "*.kt" -exec sed -i.bak "s/MyModel/${DATAMODEL^}/g" {} \; # First upper case
