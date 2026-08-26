@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-data"))
+    implementation(projects.coreData)
 
     // WorkManager
     implementation(libs.androidx.work.ktx)

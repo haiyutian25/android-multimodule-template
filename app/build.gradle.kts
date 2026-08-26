@@ -34,10 +34,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-ui"))
-    implementation(project(":feature-mymodel-api"))
-    implementation(project(":feature-mymodel-impl"))
-    implementation(project(":sync-work"))
+    implementation(projects.coreUi)
+    implementation(projects.featureMymodelApi)
+    implementation(projects.featureMymodelImpl)
+    implementation(projects.syncWork)
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)
@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     // Instrumented tests
-    androidTestImplementation(project(":core-testing"))
+    androidTestImplementation(projects.coreTesting)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.androidx.test.ext.junit)

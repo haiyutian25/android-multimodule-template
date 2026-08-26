@@ -14,12 +14,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-data"))
-    implementation(project(":core-domain"))
-    implementation(project(":core-ui"))
-    implementation(project(":feature-mymodel-api"))
+    implementation(projects.coreData)
+    implementation(projects.coreDomain)
+    implementation(projects.coreUi)
+    implementation(projects.featureMymodelApi)
 
-    androidTestImplementation(project(":core-testing"))
+    androidTestImplementation(projects.coreTesting)
 
     // Core Android dependencies
     implementation(libs.androidx.activity.compose)

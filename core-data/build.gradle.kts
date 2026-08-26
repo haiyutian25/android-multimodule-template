@@ -13,9 +13,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-common"))
-    implementation(project(":core-database"))
-    implementation(project(":core-model"))
+    implementation(projects.coreCommon)
+    implementation(projects.coreDatabase)
+    implementation(projects.coreModel)
 
     implementation(libs.kotlinx.coroutines.android)
 

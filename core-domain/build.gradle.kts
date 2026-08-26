@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-data"))
+    implementation(projects.coreData)
 
     implementation(libs.kotlinx.coroutines.android)
 }

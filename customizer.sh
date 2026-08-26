@@ -142,6 +142,13 @@ find ./ -type f -name "*.kt" -exec sed -i.bak "s/MyModel/${DATAMODEL^}/g" {} \; 
 find ./ -type f -name "*.kt" -exec sed -i.bak "s/myModel/${DATAMODEL,}/g" {} \; # First lower case
 find ./ -type f -name "*.kt*" -exec sed -i.bak "s/mymodel/${DATAMODEL,,}/g" {} \; # All lowercase
 
+# Rename typesafe project accessors of the feature modules (e.g. projects.featureMymodelApi).
+# Gradle capitalizes each kebab-case segment: "feature-mymodel-api" -> "featureMymodelApi",
+# so the model segment must become lowercase-with-capital-first (e.g. "Todoitem").
+featureAccessorModel=${DATAMODEL,,}
+featureAccessorModel=${featureAccessorModel^}
+find ./ -type f -name "*.kts" -exec sed -i.bak "s/featureMymodel/feature$featureAccessorModel/g" {} \;
+
 echo "Cleaning up"
 find . -name "*.bak" -type f -delete
 

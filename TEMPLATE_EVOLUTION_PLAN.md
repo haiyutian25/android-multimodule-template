@@ -114,7 +114,7 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
 
 - [x] **新建 `core-common` 工具模块**：协程调度器限定符（`@Dispatcher` IO/Default、`@ApplicationScope`）+ `Result` 封装（Success/Error/Loading + `Flow.asResult()`）（2026-08-26 完成：纯 JVM 模块 + Hilt，Hilt 约定插件新增 JVM 分支注入 hilt-core，`DefaultMyModelRepository.syncWith` 接入 `@Dispatcher(IO)`）
   - 参考：`nowinandroid/core/common/`
-- [ ] **低成本构建改进**：`settings.gradle.kts` 开启 `TYPESAFE_PROJECT_ACCESSORS` + JDK 17 兼容性检查
+- [x] **低成本构建改进**：`settings.gradle.kts` 开启 `TYPESAFE_PROJECT_ACCESSORS` + JDK 17 兼容性检查（2026-08-26 完成：全部模块引用切换为 `projects.xxx` 类型安全访问器，根项目名改为 `multimodule-template` 以符合访问器命名规范，customizer 新增 feature 访问器模型段重命名）
   - 参考：`nowinandroid/settings.gradle.kts`
 - [ ] **新建 `core-network` 真实网络层**：Retrofit + OkHttp + kotlinx-serialization，替换 `MyModelNetworkDataSource` 假实现，让离线优先同步真正从网络拉取
   - 参考：`nowinandroid/core/network/`
