@@ -14,12 +14,12 @@ android {
 }
 
 dependencies {
-    implementation(projects.coreData)
-    implementation(projects.coreDomain)
-    implementation(projects.coreUi)
-    implementation(projects.featureMymodelApi)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
+    implementation(projects.core.ui)
+    implementation(projects.feature.mymodel.api)
 
-    androidTestImplementation(projects.coreTesting)
+    androidTestImplementation(projects.core.testing)
 
     // Core Android dependencies
     implementation(libs.androidx.activity.compose)
@@ -49,7 +49,7 @@ dependencies {
     kspTest(libs.hilt.compiler)
 
     // Local tests: jUnit, coroutines, Android runner
-    testImplementation(projects.coreTesting)
+    testImplementation(projects.core.testing)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

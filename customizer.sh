@@ -142,12 +142,9 @@ find ./ -type f -name "*.kt" -exec sed -i.bak "s/MyModel/${DATAMODEL^}/g" {} \; 
 find ./ -type f -name "*.kt" -exec sed -i.bak "s/myModel/${DATAMODEL,}/g" {} \; # First lower case
 find ./ -type f -name "*.kt*" -exec sed -i.bak "s/mymodel/${DATAMODEL,,}/g" {} \; # All lowercase
 
-# Rename typesafe project accessors of the feature modules (e.g. projects.featureMymodelApi).
-# Gradle capitalizes each kebab-case segment: "feature-mymodel-api" -> "featureMymodelApi",
-# so the model segment must become lowercase-with-capital-first (e.g. "Todoitem").
-featureAccessorModel=${DATAMODEL,,}
-featureAccessorModel=${featureAccessorModel^}
-find ./ -type f -name "*.kts" -exec sed -i.bak "s/featureMymodel/feature$featureAccessorModel/g" {} \;
+# Note: with the hierarchical layout, the typesafe accessors (projects.feature.mymodel.api)
+# and the settings include paths (:feature:mymodel:api) use the lowercase "mymodel" segment,
+# which is already rewritten by the model rename above - no separate accessor step is needed.
 
 echo "Cleaning up"
 find . -name "*.bak" -type f -delete
@@ -155,11 +152,12 @@ find . -name "*.bak" -type f -delete
 # Rename files
 echo "Renaming files to $DATAMODEL"
 find ./ -name "*MyModel*.kt" | sed "p;s/MyModel/${DATAMODEL^}/" | tr '\n' '\0' | xargs -0 -n 2 mv
-# Rename feature module names (api/impl split)
-if [[ -n $(find ./ -name "*-mymodel-api" -or -name "*-mymodel-impl") ]]
+# Rename the feature module directory (feature/mymodel -> feature/<model>); the api and impl
+# sub-modules move with it. Runs before the package-dir rename below so nested paths resolve.
+if [[ -d ./feature/mymodel ]]
 then
-  echo "Renaming modules to $DATAMODEL"
-  find ./ \( -name "*-mymodel-api" -or -name "*-mymodel-impl" \) -type d | sed "p;s/mymodel/${DATAMODEL,,}/" | tr '\n' '\0' | xargs -0 -n 2 mv
+  echo "Renaming feature module to $DATAMODEL"
+  find ./feature -maxdepth 1 -name "mymodel" -type d | sed "p;s/mymodel/${DATAMODEL,,}/" | tr '\n' '\0' | xargs -0 -n 2 mv
 fi
 # Rename directories
 echo "Renaming directories to $DATAMODEL"

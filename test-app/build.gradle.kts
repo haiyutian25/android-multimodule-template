@@ -14,13 +14,13 @@ android {
 
 dependencies {
     implementation(projects.app)
-    implementation(projects.coreData)
-    implementation(projects.coreDomain)
-    implementation(projects.coreTesting)
-    implementation(projects.featureMymodelApi)
-    implementation(projects.featureMymodelImpl)
-    implementation(projects.syncTest)
-    implementation(projects.syncWork)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
+    implementation(projects.core.testing)
+    implementation(projects.feature.mymodel.api)
+    implementation(projects.feature.mymodel.impl)
+    implementation(projects.sync.syncTest)
+    implementation(projects.sync.work)
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)

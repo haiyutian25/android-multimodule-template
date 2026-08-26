@@ -41,10 +41,10 @@ baselineProfile {
 }
 
 dependencies {
-    implementation(projects.coreUi)
-    implementation(projects.featureMymodelApi)
-    implementation(projects.featureMymodelImpl)
-    implementation(projects.syncWork)
+    implementation(projects.core.ui)
+    implementation(projects.feature.mymodel.api)
+    implementation(projects.feature.mymodel.impl)
+    implementation(projects.sync.work)
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)
@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     // Instrumented tests
-    androidTestImplementation(projects.coreTesting)
+    androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.androidx.test.ext.junit)

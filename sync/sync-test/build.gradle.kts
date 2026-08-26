@@ -8,8 +8,8 @@ android {
 }
 
 dependencies {
-    implementation(projects.coreData)
-    implementation(projects.syncWork)
+    implementation(projects.core.data)
+    implementation(projects.sync.work)
 
     implementation(libs.hilt.android.testing)
 }

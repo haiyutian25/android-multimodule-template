@@ -13,10 +13,10 @@ android {
 }
 
 dependencies {
-    implementation(projects.coreCommon)
-    implementation(projects.coreDatabase)
-    implementation(projects.coreModel)
-    implementation(projects.coreNetwork)
+    implementation(projects.core.common)
+    implementation(projects.core.database)
+    implementation(projects.core.model)
+    implementation(projects.core.network)
 
     implementation(libs.kotlinx.coroutines.android)
 
