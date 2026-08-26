@@ -324,17 +324,20 @@ include(":feature:task:impl")
 
 ## 八、目录结构速览
 
+> 结构由 `gen_structure.py` 从文件系统自动导出（完整机器可读版见 `WORKSPACE_STRUCTURE.md`），此处为标注了职责的同一份结构；模块清单与 `settings.gradle.kts` 完全一致。
+
 ```
 .
-├── app/                        # 应用壳
-├── benchmarks/                 # 基准测试 + Baseline Profile
-├── build-logic/                # Gradle 约定插件
+├── app/                        # 应用壳（单 Activity + 导航组装 + 主题）
+├── benchmarks/                 # Macrobenchmark + Baseline Profile
+├── build-logic/
+│   └── convention/             # Gradle 约定插件
 ├── core/
 │   ├── common/                 # 调度器/作用域（纯 JVM）
 │   ├── data/                   # 仓库层（离线优先）+ 同步抽象
-│   ├── data-test/              # 数据层 Hilt Fake
+│   ├── data-test/              # 数据层 Hilt Fake（TestDataModule）
 │   ├── database/               # Room
-│   ├── designsystem/           # 主题 + 组件 + 图标
+│   ├── designsystem/           # 主题 + 状态组件 + 图标
 │   ├── domain/                 # UseCase
 │   ├── model/                  # 领域模型（纯 JVM）
 │   ├── navigation/             # Navigation3（Navigator/NavigationState）
@@ -345,13 +348,16 @@ include(":feature:task:impl")
 │   └── mymodel/
 │       ├── api/                # 导航契约（NavKey）
 │       └── impl/               # UI + ViewModel
+├── gradle/
+│   └── libs.versions.toml      # 版本目录
 ├── sync/
 │   ├── work/                   # WorkManager 同步
 │   └── sync-test/              # 同步测试替身
 ├── ui-test-hilt-manifest/      # UI 测试 Hilt 宿主 Activity
-├── customizer.sh               # 一键定制脚本
-└── gradle/libs.versions.toml   # 版本目录
+└── customizer.sh               # 一键定制脚本
 ```
+
+> 结构变化后可随时运行 `python gen_structure.py` 重新生成 `WORKSPACE_STRUCTURE.md`（含顶层文件与 18 个模块的权威清单）。
 
 ---
 
@@ -360,3 +366,4 @@ include(":feature:task:impl")
 - `TEMPLATE_EVOLUTION_PLAN.md`：模板从 NiA 吸收各模式的演进记录。
 - `TEMPLATE_ALIGNMENT_GAPS.md`：与 NiA 的对齐差距清单与落地记录。
 - `TEMPLATE_REALIGNMENT_PLAN.md`：架构/结构/组件的重新对齐方案与实施记录。
+- `WORKSPACE_STRUCTURE.md`：脚本自动导出的目录/模块结构（`python gen_structure.py` 重新生成）。
