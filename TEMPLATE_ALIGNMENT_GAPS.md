@@ -85,6 +85,20 @@
 - 本模板只有 `core:testing`（`HiltTestRunner`、`TestDispatcherModule`、`MainDispatcherRule`、`TestSyncManager`、`TestMyModelRepository`），但 **Hilt Fake（`FakeMyModelRepository` + `fakeMyModels`）被写在了生产模块 `core:data` 里**（`core/data/.../di/DataModule.kt`）。
 - **结论**：**NiA 架构上更干净**——生产模块不掺测试代码、依赖方向清晰（测试依赖生产，绝不反向）、Fake 可跨测试模块复用。我们曾把 Fake 塞进生产 `core:data`，导致依赖它的模块都会带上测试假实现，是**设计短板**。运行时性能无差异，差别在架构卫生。
 - **处理**：**已完整对齐 NiA**——新建 `core:data-test` 模块，将 `FakeMyModelRepository` + `fakeMyModels` 迁出生产 `core:data`，并新增 `TestDataModule`（`@TestInstallIn` 替换 `DataModule`）；`core:data` 的单测改用内联数据、不再依赖 `core:data-test`（与 NiA 一致，避免循环依赖）。
+- **绑定对照（1:1 替换完整性佐证）**：NiA 原则是 `TestDataModule` 把生产 `DataModule` 的**每个绑定**都换成 Fake。
+
+  | 生产 `DataModule` 绑定 | NiA 的 Fake | 本模板 |
+  |---|---|---|
+  | `TopicsRepository` | `FakeTopicsRepository` | 无此仓库 |
+  | `NewsRepository` | `FakeNewsRepository` | 无此仓库 |
+  | `UserDataRepository` | `FakeUserDataRepository` | 无此仓库 |
+  | `RecentSearchRepository` | `FakeRecentSearchRepository` | 无此仓库 |
+  | `SearchContentsRepository` | `FakeSearchContentsRepository` | 无此仓库 |
+  | `NetworkMonitor` | `AlwaysOnlineNetworkMonitor` | 无此接口（全仓 0 匹配） |
+  | `TimeZoneMonitor` | `DefaultZoneIdTimeZoneMonitor` | 无此接口（0 匹配） |
+  | —— | —— | `MyModelRepository` → `FakeMyModelRepository` ✅ |
+
+  本模板生产 `DataModule` 仅绑定 `MyModelRepository`，`core:data-test` 的 `TestDataModule` 已 1:1 替换；`SyncManager` 替身在 `sync:sync-test`（`NeverSyncingSyncManager`），与 NiA 分工一致。app 的 androidTest 无需 `sync:sync-test`（`DelegatingWorker` 走 WorkManager 默认自动初始化，`HiltTestApplication` 下 `WorkManager.getInstance()` 不崩），与 NiA 的 app androidTest 行为一致。
 
 ### 7. 同步的 change-list 深度
 
