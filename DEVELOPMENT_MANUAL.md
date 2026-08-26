@@ -96,7 +96,7 @@
 | `core:navigation` | **Navigation3 基建**：`Navigator`、`NavigationState`（顶层栈 + 子栈管理） |
 | `core:designsystem` | **设计系统**：`AppTheme`（Color/Type/Shape/Spacing）、可复用组件（`UiStateView`/`LoadingIndicator`/`ErrorView`/`EmptyView`）、`AppIcons` |
 | `core:ui` | **跨 feature 共享业务 UI** 层（当前为占位，`api` 暴露 designsystem，随业务扩展填充） |
-| `core:testing` | 测试基建：`HiltTestRunner`、`MainDispatcherRule`、`TestMyModelRepository`、`TestSyncManager`、`TestDispatchersModule` |
+| `core:testing` | 测试基建：`HiltTestRunner`、`MainDispatcherRule`、`TestMyModelRepository`、`TestSyncManager`、`TestDispatcherModule`、`TestDispatchersModule` |
 
 ### feature 模块（双模块拆分）
 
@@ -138,15 +138,22 @@ class MyModelViewModel @Inject constructor(
     syncManager: SyncManager,
 ) : ViewModel() {
 
-    val uiState: StateFlow<UiState<List<String>>> = getMyModels()
-        .map { if (it.isEmpty()) UiState.Empty else UiState.Success(it) }
-        .catch { emit(UiState.Error(it)) }
+    private val retryTrigger = MutableStateFlow(0)
+
+    val uiState: StateFlow<UiState<List<String>>> = retryTrigger
+        .flatMapLatest {
+            getMyModels()
+                .map { data -> if (data.isEmpty()) UiState.Empty else UiState.Success(data) }
+                .catch { emit(UiState.Error(it)) }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState.Loading)
 
     val isSyncing: StateFlow<Boolean> = syncManager.isSyncing
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun addMyModel(name: String) = viewModelScope.launch { addMyModel(name) }
+
+    fun retry() { retryTrigger.value++ }   // 重试：重新触发数据加载
 }
 ```
 
@@ -161,19 +168,22 @@ fun MyModelScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
-    // 有状态层收集状态后，传给无状态层渲染
-    // 事件通过 viewModel::addMyModel / viewModel::retry 上行
-    UiStateView(
-        uiState = uiState,
-        onRetry = viewModel::retry,
-        successContent = { items -> MyModelList(items = items) },
-    )
+    Column(modifier.safeDrawingPadding().fillMaxSize()) {
+        if (isSyncing) LinearProgressIndicator(Modifier.fillMaxWidth())   // 同步中指示
+        MyModelInput(onSave = viewModel::addMyModel)                      // 事件上行
+        UiStateView(
+            uiState = uiState,
+            onRetry = viewModel::retry,                                   // 事件上行
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            successContent = { items -> MyModelList(items = items) },     // 无状态渲染
+        )
+    }
 }
 ```
 
 ### 约定清单（开发新功能必须遵守）
 
-1. ViewModel 只依赖 **UseCase**，不直接依赖 Repository。
+1. ViewModel 依赖 **UseCase** 获取业务数据（可注入 `SyncManager` 等架构组件），**不直接依赖 Repository**。
 2. 状态一律 `StateFlow` + `stateIn(WhileSubscribed(5000))`。
 3. Compose 一律 `collectAsStateWithLifecycle`（不要用 `collectAsState`）。
 4. Compose **不直接**注入 Repository/UseCase/SyncManager，只通过 ViewModel。
@@ -277,7 +287,8 @@ class GetTasksUseCase @Inject constructor(private val repo: TaskRepository) {
 - 定义 `@Serializable data object TaskList : NavKey`（导航契约）。
 
 **7. feature impl → 新建 `feature:task:impl`**
-- 应用 `template.android.feature.impl` + `template.android.library.compose` 约定插件。
+- 应用 `template.android.feature.impl` + `template.android.library.compose` + `template.android.library.jacoco` 约定插件。
+- 约定插件已注入公共依赖（`core:ui`、lifecycle、navigation3）；**还需在 `build.gradle.kts` 显式声明本 feature 特有依赖**：`implementation(projects.core.domain)`（UseCase）、`implementation(projects.feature.task.api)`，以及 compose/material3 等。
 - `TaskViewModel`（依赖 UseCase + SyncManager，暴露 StateFlow）。
 - `TaskScreen`（`collectAsStateWithLifecycle` + `UiStateView` 处理四态）。
 - `EntryProvider`（`entry<TaskList> { TaskScreen(...) }` 导航注册）。
@@ -304,7 +315,8 @@ include(":feature:task:impl")
 | `gradlew testDebugUnitTest` | 单元测试 |
 | `gradlew :app:assembleDebugAndroidTest` | 构建仪器测试 APK |
 | `gradlew :core:data:createDebugCombinedCoverageReport` | 生成 Jacoco 覆盖率报告（需先有执行数据） |
-| `gradlew :benchmarks:pixel6Api33...Benchmark` | 运行基准测试（需 GMD/设备） |
+| `gradlew :benchmarks:pixel6Api33DebugAndroidTest` | 在 GMD（`pixel6Api33`）上运行基准测试 |
+| `gradlew :app:generateBaselineProfile` | 用 benchmarks 规则生成 Baseline Profile（需 GMD） |
 
 > 要求 **JDK 17+**；`settings.gradle.kts` 启用了 `TYPESAFE_PROJECT_ACCESSORS`（用 `projects.xxx` 引用模块）。
 
