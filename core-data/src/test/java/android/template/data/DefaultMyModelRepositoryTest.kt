@@ -11,10 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.template.core.data.DefaultMyModelRepository
 import android.template.core.data.Synchronizer
-import android.template.core.data.di.FakeMyModelNetworkDataSource
 import android.template.core.data.di.fakeMyModels
 import android.template.core.database.MyModelDao
 import android.template.core.database.MyModelEntity
+import android.template.core.network.MyModelNetworkDataSource
+import android.template.core.network.model.NetworkMyModel
 
 /**
  * Unit tests for [DefaultMyModelRepository].
@@ -53,6 +54,11 @@ private class FakeMyModelDao : MyModelDao {
     override suspend fun insertMyModel(item: MyModelEntity) {
         data.add(0, item)
     }
+}
+
+private class FakeMyModelNetworkDataSource : MyModelNetworkDataSource {
+    override suspend fun fetchMyModels(): List<NetworkMyModel> =
+        fakeMyModels.map { NetworkMyModel(name = it) }
 }
 
 private class FakeSynchronizer : Synchronizer

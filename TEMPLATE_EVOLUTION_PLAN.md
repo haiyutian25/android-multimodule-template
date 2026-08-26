@@ -116,7 +116,7 @@ Retrofit(NiaNetworkDataSource) → SyncWorker(WorkManager) → Room(NiaDatabase)
   - 参考：`nowinandroid/core/common/`
 - [x] **低成本构建改进**：`settings.gradle.kts` 开启 `TYPESAFE_PROJECT_ACCESSORS` + JDK 17 兼容性检查（2026-08-26 完成：全部模块引用切换为 `projects.xxx` 类型安全访问器，根项目名改为 `multimodule-template` 以符合访问器命名规范，customizer 新增 feature 访问器模型段重命名）
   - 参考：`nowinandroid/settings.gradle.kts`
-- [ ] **新建 `core-network` 真实网络层**：Retrofit + OkHttp + kotlinx-serialization，替换 `MyModelNetworkDataSource` 假实现，让离线优先同步真正从网络拉取
+- [x] **新建 `core-network` 真实网络层**：Retrofit + OkHttp + kotlinx-serialization，替换 `MyModelNetworkDataSource` 假实现，让离线优先同步真正从网络拉取（2026-08-26 完成：网络 DTO `NetworkMyModel` 与领域模型分离，`RetrofitMyModelNetwork` 实现 + `NetworkModule` DI，`BACKEND_URL` 从 local.properties 注入 BuildConfig；注意：未配置真实后端前同步会失败、列表为空，属预期行为）
   - 参考：`nowinandroid/core/network/`
 - [ ] **测试基建**：测试替身（core-testing）、截图测试（Roborazzi）、sync-test
   - 参考：`nowinandroid/core/testing/`、`core/screenshot-testing/`、`sync/sync-test/`

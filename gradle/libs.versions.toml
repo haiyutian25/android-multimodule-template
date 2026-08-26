@@ -18,6 +18,8 @@ kotlinxSerializationCore = "1.11.0"
 ksp = "2.3.9"
 lifecycleViewmodelNav3 = "2.10.0"
 nav3Core = "1.1.2"
+okhttp = "4.12.0"
+retrofit = "2.11.0"
 
 [libraries]
 # Gradle plugins (used as compileOnly dependencies by build-logic convention plugins)
@@ -63,6 +65,9 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationCore" }
+okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-kotlin-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 
 
 [plugins]

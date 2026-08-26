@@ -10,6 +10,7 @@ import android.template.core.common.Dispatcher
 import android.template.core.database.MyModelDao
 import android.template.core.database.MyModelEntity
 import android.template.core.database.toModel
+import android.template.core.network.MyModelNetworkDataSource
 import javax.inject.Inject
 
 interface MyModelRepository : Syncable {

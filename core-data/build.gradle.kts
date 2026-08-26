@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.coreCommon)
     implementation(projects.coreDatabase)
     implementation(projects.coreModel)
+    implementation(projects.coreNetwork)
 
     implementation(libs.kotlinx.coroutines.android)
 
