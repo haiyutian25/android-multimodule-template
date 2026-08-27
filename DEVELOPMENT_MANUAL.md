@@ -438,4 +438,5 @@ include 后执行一次 Gradle Sync，即可使用 `projects.feature.task.api` /
 - `TEMPLATE_EVOLUTION_PLAN.md`：模板从 NiA 吸收各模式的演进记录。
 - `TEMPLATE_ALIGNMENT_GAPS.md`：与 NiA 的对齐差距清单与落地记录。
 - `TEMPLATE_REALIGNMENT_PLAN.md`：架构/结构/组件的重新对齐方案与实施记录。
+- `TEMPLATE_GENERATOR_PLAN.md`：「干净 hello world 骨架 + 生成器脚本」改造方案（待实施）。
 - `WORKSPACE_STRUCTURE.md`：脚本自动导出的目录/模块结构（`python gen_structure.py` 重新生成）。
