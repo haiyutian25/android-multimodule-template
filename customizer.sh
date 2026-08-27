@@ -20,13 +20,13 @@ Positional arguments:
   ApplicationName     optional application class name (PascalCase, default: MyApplication)
 
 Optional code-level customizations:
-  --entity-field <name>     rename the entity field (default: name), e.g. title
+  --entity-field <name>     rename the entity field (default: message), e.g. title
   --fake-data <a,b,c>       fake data items used by tests (default: One,Two,Three)
   --database-class <Name>   rename the Room database class (default: AppDatabase)
   --main-activity <Name>    rename the main activity class (default: MainActivity)
-  --query-method <name>     rename the DAO query method (default: getMyModels)
-  --insert-method <name>    rename the DAO insert method (default: insertMyModel)
-  --add-method <name>       rename the ViewModel add method (default: addMyModel)
+  --query-method <name>     rename the DAO query method (default: getGreetings)
+  --insert-method <name>    rename the DAO insert method (default: insertGreeting)
+  --add-method <name>       rename the ViewModel add method (default: addGreeting)
 
 Example:
   bash customizer.sh com.example.todo TodoItem TodoApp \
@@ -139,14 +139,20 @@ find ./ -type f -name "*.kts" -exec sed -i.bak "s/android.template/$PACKAGE/g" {
 # Compose compiler stability config (references the model package)
 find ./ -type f -name "compose_compiler_config.conf" -exec sed -i.bak "s/android\.template/$PACKAGE/g" {} \;
 
-# Rename model
+# Rename model. The demo model is "Greeting" - a single word, so its camelCase and lowercase
+# forms coincide. Order matters:
+#   1. PascalCase Greeting/Greetings -> Model/Models (classes, getGreetings/insertGreeting/...)
+#   2. plural flow property "greetings" -> camelCase plural (e.g. todoItems)
+#   3. camelCase vars greeting<X> -> model<X> (greetingDao, greetingRepository, ...)
+#   4. lowercase greeting -> model (package paths, table name, feature dir, accessors)
 echo "Renaming model to $DATAMODEL"
-find ./ -type f -name "*.kt" -exec sed -i.bak "s/MyModel/${DATAMODEL^}/g" {} \; # First upper case
-find ./ -type f -name "*.kt" -exec sed -i.bak "s/myModel/${DATAMODEL,}/g" {} \; # First lower case
-find ./ -type f -name "*.kt*" -exec sed -i.bak "s/mymodel/${DATAMODEL,,}/g" {} \; # All lowercase
+find ./ -type f -name "*.kt" -exec sed -i.bak "s/Greeting/${DATAMODEL^}/g" {} \;
+find ./ -type f -name "*.kt" -exec sed -i.bak "s/greetings/${DATAMODEL,}s/g" {} \;
+find ./ -type f -name "*.kt" -exec sed -i.bak "s/greeting\([A-Z]\)/${DATAMODEL,}\1/g" {} \;
+find ./ -type f -name "*.kt*" -exec sed -i.bak "s/greeting/${DATAMODEL,,}/g" {} \;
 
-# Note: with the hierarchical layout, the typesafe accessors (projects.feature.mymodel.api)
-# and the settings include paths (:feature:mymodel:api) use the lowercase "mymodel" segment,
+# Note: with the hierarchical layout, the typesafe accessors (projects.feature.greeting.api)
+# and the settings include paths (:feature:greeting:api) use the lowercase "greeting" segment,
 # which is already rewritten by the model rename above - no separate accessor step is needed.
 
 echo "Cleaning up"
@@ -154,17 +160,17 @@ find . -name "*.bak" -type f -delete
 
 # Rename files
 echo "Renaming files to $DATAMODEL"
-find ./ -name "*MyModel*.kt" | sed "p;s/MyModel/${DATAMODEL^}/" | tr '\n' '\0' | xargs -0 -n 2 mv
-# Rename the feature module directory (feature/mymodel -> feature/<model>); the api and impl
+find ./ -name "*Greeting*.kt" | sed "p;s/Greeting/${DATAMODEL^}/" | tr '\n' '\0' | xargs -0 -n 2 mv
+# Rename the feature module directory (feature/greeting -> feature/<model>); the api and impl
 # sub-modules move with it. Runs before the package-dir rename below so nested paths resolve.
-if [[ -d ./feature/mymodel ]]
+if [[ -d ./feature/greeting ]]
 then
   echo "Renaming feature module to $DATAMODEL"
-  find ./feature -maxdepth 1 -name "mymodel" -type d | sed "p;s/mymodel/${DATAMODEL,,}/" | tr '\n' '\0' | xargs -0 -n 2 mv
+  find ./feature -maxdepth 1 -name "greeting" -type d | sed "p;s/greeting/${DATAMODEL,,}/" | tr '\n' '\0' | xargs -0 -n 2 mv
 fi
 # Rename directories
 echo "Renaming directories to $DATAMODEL"
-find ./ -name "mymodel" -type d  | sed "p;s/mymodel/${DATAMODEL,,}/" |  tr '\n' '\0' | xargs -0 -n 2 mv
+find ./ -name "greeting" -type d  | sed "p;s/greeting/${DATAMODEL,,}/" |  tr '\n' '\0' | xargs -0 -n 2 mv
 
 # Rename app
 if [[ $APPNAME != MyApplication ]]
@@ -177,18 +183,20 @@ fi
 
 # ---------- Optional code-level customizations ----------
 
-# A. Rename the entity field (default: name)
+# A. Rename the entity field (default: message). Targeted patterns rename the stored field in the
+# model/entity/network-DTO and its data-layer usages only. They deliberately do NOT touch other
+# "message" identifiers (designsystem error/empty message params, Throwable.message); method
+# parameters keep their own names - only the persisted field is renamed.
 if [[ -n ${ENTITY_FIELD-} ]]
 then
-    echo "Renaming entity field 'name' to '$ENTITY_FIELD'"
+    echo "Renaming entity field 'message' to '$ENTITY_FIELD'"
     find ./ -type f -name "*.kt" -exec sed -i.bak \
-        -e "s/val name: String/val $ENTITY_FIELD: String/g" \
-        -e "s/it\.name/it.$ENTITY_FIELD/g" \
-        -e "s/model\.name/model.$ENTITY_FIELD/g" \
-        -e "s/\.toModel()\.name/.toModel().$ENTITY_FIELD/g" \
-        -e "s/$DATAMODEL(name = name, uid = uid)/$DATAMODEL($ENTITY_FIELD = $ENTITY_FIELD, uid = uid)/g" \
-        -e "s/$DATAMODEL(name = /$DATAMODEL($ENTITY_FIELD = /g" \
-        -e "s/${DATAMODEL}Entity(name = /${DATAMODEL}Entity($ENTITY_FIELD = /g" {} \;
+        -e "s/val message: String/val $ENTITY_FIELD: String/g" \
+        -e "s/it\.toModel()\.message/it.toModel().$ENTITY_FIELD/g" \
+        -e "s/model\.message/model.$ENTITY_FIELD/g" \
+        -e "s/$DATAMODEL(message = message, uid = uid)/$DATAMODEL($ENTITY_FIELD = $ENTITY_FIELD, uid = uid)/g" \
+        -e "s/${DATAMODEL}Entity(message = /${DATAMODEL}Entity($ENTITY_FIELD = /g" \
+        -e "s/Network${DATAMODEL}(message = it)/Network${DATAMODEL}($ENTITY_FIELD = it)/g" {} \;
 fi
 
 # A. Replace the fake data used by tests/previews
@@ -264,6 +272,10 @@ fi
 
 echo "Cleaning up"
 find . -name "*.bak" -type f -delete
+
+# Remove stale Room schemas: the exported schema JSON still references the demo table/field
+# names; Room regenerates it on the next build with the customized names.
+rm -rf core/database/schemas/
 
 # Remove additional files
 echo "Removing additional files"
