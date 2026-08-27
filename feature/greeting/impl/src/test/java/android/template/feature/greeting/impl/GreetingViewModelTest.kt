@@ -10,8 +10,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import android.template.core.domain.AddGreetingUseCase
 import android.template.core.domain.GetGreetingsUseCase
+import android.template.core.model.Greeting
 import android.template.core.testing.repository.TestGreetingRepository
 import android.template.core.testing.util.MainDispatcherRule
 import android.template.core.testing.util.TestSyncManager
@@ -35,7 +35,6 @@ class GreetingViewModelTest {
     fun setup() {
         viewModel = GreetingViewModel(
             GetGreetingsUseCase(repository),
-            AddGreetingUseCase(repository),
             TestSyncManager(),
         )
     }
@@ -49,10 +48,10 @@ class GreetingViewModelTest {
     fun uiState_whenModelsEmitted_isSuccess() = runTest {
         backgroundScope.launch(UnconfinedTestDispatcher()) { viewModel.uiState.collect() }
 
-        repository.sendGreetings(listOf("One", "Two"))
+        repository.sendGreetings(listOf(Greeting("Hello"), Greeting("World")))
 
         assertEquals(
-            UiState.Success(listOf("One", "Two")),
+            UiState.Success(listOf(Greeting("Hello"), Greeting("World"))),
             viewModel.uiState.value,
         )
     }

@@ -23,15 +23,6 @@ import android.template.core.network.model.NetworkGreeting
 class DefaultGreetingRepositoryTest {
 
     @Test
-    fun greetings_newItemSaved_itemIsReturned() = runTest {
-        val repository = DefaultGreetingRepository(FakeGreetingDao(), FakeGreetingNetworkDataSource(), Dispatchers.Unconfined)
-
-        repository.add("Repository")
-
-        assertEquals(repository.greetings.first().size, 1)
-    }
-
-    @Test
     fun syncWith_emptyDatabase_seedsRemoteData() = runTest {
         val repository = DefaultGreetingRepository(FakeGreetingDao(), FakeGreetingNetworkDataSource(), Dispatchers.Unconfined)
 
@@ -42,7 +33,7 @@ class DefaultGreetingRepositoryTest {
     }
 }
 
-private val fakeModels = listOf("One", "Two", "Three")
+private val fakeModels = listOf("Hello", "World", "Template")
 
 private class FakeGreetingDao : GreetingDao {
 

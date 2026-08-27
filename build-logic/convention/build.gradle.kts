@@ -34,11 +34,6 @@ tasks {
     }
 }
 
-// The plugin ids come from the [plugins] entries in gradle/libs.versions.toml.
-// Note (same pattern as nowinandroid): an alias that is also a prefix of other aliases
-// (e.g. template.android.application has the child template.android.application.compose)
-// generates a node accessor, so the plugin itself must be obtained via asProvider();
-// pure leaf aliases return a Provider<PluginDependency> directly and use get().
 gradlePlugin {
     plugins {
         register("androidApplication") {

@@ -21,18 +21,15 @@ Positional arguments:
 
 Optional code-level customizations:
   --entity-field <name>     rename the entity field (default: message), e.g. title
-  --fake-data <a,b,c>       fake data items used by tests (default: One,Two,Three)
   --database-class <Name>   rename the Room database class (default: AppDatabase)
   --main-activity <Name>    rename the main activity class (default: MainActivity)
   --query-method <name>     rename the DAO query method (default: getGreetings)
   --insert-method <name>    rename the DAO insert method (default: insertGreeting)
-  --add-method <name>       rename the ViewModel add method (default: addGreeting)
 
 Example:
   bash customizer.sh com.example.todo TodoItem TodoApp \
       --entity-field title --database-class TodoDatabase --main-activity TodoActivity \
-      --query-method loadTodos --insert-method saveTodo --add-method addTodo \
-      --fake-data "Buy milk,Walk dog"
+      --query-method loadTodos --insert-method saveTodo
 EOF
 }
 
@@ -40,19 +37,17 @@ EOF
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --entity-field|--fake-data|--database-class|--main-activity|--query-method|--insert-method|--add-method)
+    --entity-field|--database-class|--main-activity|--query-method|--insert-method)
       if [[ -z ${2-} ]]; then
         echo "Option $1 requires a value." >&2
         exit 2
       fi
       case "$1" in
         --entity-field)   ENTITY_FIELD=$2 ;;
-        --fake-data)      FAKE_DATA=$2 ;;
         --database-class) DATABASE_CLASS=$2 ;;
         --main-activity)  MAIN_ACTIVITY=$2 ;;
         --query-method)   QUERY_METHOD=$2 ;;
         --insert-method)  INSERT_METHOD=$2 ;;
-        --add-method)     ADD_METHOD=$2 ;;
       esac
       shift 2
       ;;
@@ -107,7 +102,7 @@ if [[ -n ${MAIN_ACTIVITY-} && ! $MAIN_ACTIVITY =~ ^[A-Z][A-Za-z0-9]*$ ]]; then
   echo "--main-activity '$MAIN_ACTIVITY' must be PascalCase." >&2
   exit 2
 fi
-for _opt in QUERY_METHOD INSERT_METHOD ADD_METHOD; do
+for _opt in QUERY_METHOD INSERT_METHOD; do
   _val=${!_opt-}
   if [[ -n $_val && ! $_val =~ ^[a-z][A-Za-z0-9]*$ ]]; then
     echo "--$(echo "$_opt" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g') '$_val' must be a camelCase identifier." >&2
@@ -192,39 +187,10 @@ then
     echo "Renaming entity field 'message' to '$ENTITY_FIELD'"
     find ./ -type f -name "*.kt" -exec sed -i.bak \
         -e "s/val message: String/val $ENTITY_FIELD: String/g" \
-        -e "s/it\.toModel()\.message/it.toModel().$ENTITY_FIELD/g" \
         -e "s/model\.message/model.$ENTITY_FIELD/g" \
         -e "s/$DATAMODEL(message = message, uid = uid)/$DATAMODEL($ENTITY_FIELD = $ENTITY_FIELD, uid = uid)/g" \
         -e "s/${DATAMODEL}Entity(message = /${DATAMODEL}Entity($ENTITY_FIELD = /g" \
         -e "s/Network${DATAMODEL}(message = it)/Network${DATAMODEL}($ENTITY_FIELD = it)/g" {} \;
-fi
-
-# A. Replace the fake data used by tests/previews
-if [[ -n ${FAKE_DATA-} ]]
-then
-    echo "Setting fake data to: $FAKE_DATA"
-    IFS=',' read -ra _items <<< "$FAKE_DATA"
-    _list=""
-    for _item in "${_items[@]}"; do
-        # trim surrounding whitespace
-        _item="${_item#"${_item%%[![:space:]]*}"}"
-        _item="${_item%"${_item##*[![:space:]]}"}"
-        [[ -n $_item ]] || continue
-        if [[ $_item == *\"* ]]; then
-            echo "--fake-data items must not contain double quotes." >&2
-            exit 2
-        fi
-        _list+="\"$_item\", "
-    done
-    _list="${_list%, }"
-    if [[ -z $_list ]]; then
-        echo "--fake-data must contain at least one item." >&2
-        exit 2
-    fi
-    # escape the replacement for sed (delimiter: |)
-    _list_esc=$(printf '%s' "$_list" | sed -e 's/[&\\|]/\\&/g')
-    find ./ -type f -name "*.kt" -exec sed -i.bak -E \
-        "s|listOf\(\"One\", \"Two\", \"Three\"\)|listOf($_list_esc)|g" {} \;
 fi
 
 # B. Rename the Room database class (default: AppDatabase)
@@ -261,13 +227,6 @@ if [[ -n ${INSERT_METHOD-} ]]
 then
     echo "Renaming DAO insert method to $INSERT_METHOD"
     find ./ -type f -name "*.kt" -exec sed -i.bak "s/insert${DATAMODEL}/$INSERT_METHOD/g" {} \;
-fi
-
-# C. Rename the ViewModel add method (addMyModel after the model rename)
-if [[ -n ${ADD_METHOD-} ]]
-then
-    echo "Renaming ViewModel add method to $ADD_METHOD"
-    find ./ -type f -name "*.kt" -exec sed -i.bak "s/add${DATAMODEL}/$ADD_METHOD/g" {} \;
 fi
 
 echo "Cleaning up"

@@ -3,9 +3,7 @@ package android.template.feature.greeting.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,16 +17,11 @@ class GreetingScreenTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    @Before
-    fun setup() {
-        composeTestRule.setContent {
-            GreetingScreen(FAKE_DATA, onSave = {})
-        }
-    }
     @Test
-    fun firstItem_exists() {
-        composeTestRule.onNodeWithText(FAKE_DATA.first()).assertExists().performClick()
+    fun helloWorld_isDisplayed() {
+        composeTestRule.setContent {
+            GreetingScreen(onItemClick = {})
+        }
+        composeTestRule.onNodeWithText("Hello World").assertExists()
     }
 }
-
-private val FAKE_DATA = listOf("Compose", "Room", "Kotlin")

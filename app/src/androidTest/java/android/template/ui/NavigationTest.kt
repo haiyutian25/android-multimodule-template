@@ -22,7 +22,7 @@ class NavigationTest {
     @Test
     fun mainActivity_showsMainScreen() {
         // Here we just verify that something from the main screen is displayed.
-        composeTestRule.onNodeWithText("Save").assertExists()
+        composeTestRule.onNodeWithText("Hello World").assertExists()
 
         // TODO: Add actions and assertions to test navigation
     }

@@ -13,7 +13,5 @@ android {
 }
 
 dependencies {
-    // Expose the design system to every consumer of the shared UI module, mirroring NiA's
-    // feature -> core:ui -> core:designsystem layering.
     api(projects.core.designsystem)
 }

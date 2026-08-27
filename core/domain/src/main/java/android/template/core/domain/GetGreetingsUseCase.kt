@@ -1,6 +1,7 @@
 package android.template.core.domain
 
 import android.template.core.data.GreetingRepository
+import android.template.core.model.Greeting
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -13,5 +14,5 @@ import javax.inject.Inject
 class GetGreetingsUseCase @Inject constructor(
     private val greetingRepository: GreetingRepository,
 ) {
-    operator fun invoke(): Flow<List<String>> = greetingRepository.greetings
+    operator fun invoke(): Flow<List<Greeting>> = greetingRepository.greetings
 }

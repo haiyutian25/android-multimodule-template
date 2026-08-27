@@ -3,15 +3,17 @@ Architecture starter template (multi-module)
 
 This template is compatible with the latest **stable** version of Android Studio.
 
-![Screenshot](https://github.com/android/architecture-templates/raw/main/screenshots.png)
+The bundled screen is a plain "Hello World" placeholder — the template ships without business UI,
+while a complete layered architecture (ViewModel, use cases, repository, data sources, Room
+database, sync) is wired underneath as a working reference.
 
 ## Features
 
 * Offline-first data layer (Room as the single source of truth, background sync via WorkManager)
 * Room Database
 * Hilt
-* Domain layer (use cases) + ViewModel, read+write
-* UI in Compose, list + write (Material3), with a reusable design system
+* Domain layer (use cases) + ViewModel, read-only reference (extend with write use cases per the manual)
+* UI in Compose (Hello World placeholder screen) with a reusable Material3 design system
 * Navigation3
 * Repository and data source
 * Kotlin Coroutines and Flow (unidirectional data flow)

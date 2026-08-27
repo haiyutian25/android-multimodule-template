@@ -16,7 +16,7 @@
 - **多模块分层**：UI / Domain / Data 清晰解耦
 - **Jetpack Compose + Navigation3 + Hilt + Room + Retrofit + WorkManager**
 
-模板内置一个最小可运行示例（`greeting`），用于演示整套架构如何串起来。你可以用 `customizer.sh` 一键把它改成你的业务，或按"第六章"手动添加新业务模块。
+模板本身是一个干净的骨架：打开后界面只显示 "Hello World"，不附带任何业务 UI；但底层内置了一套完整的分层架构示例（`greeting`：ViewModel / UseCase / Repository / 数据源 / 数据库 / 同步），用于演示整套架构如何串起来。你可以用 `customizer.sh` 一键把它重命名成你的业务，或按"第六章"手动添加新业务模块，然后照本手册编写自己的界面。
 
 ### 技术栈
 
@@ -94,7 +94,7 @@
 | `core:network` | **网络层**：`GreetingNetworkDataSource` 接口 + `RetrofitGreetingNetwork`（Retrofit/OkHttp）+ 网络 DTO `NetworkGreeting` |
 | `core:data` | **仓库层（离线优先核心）**：`GreetingRepository` + `DefaultGreetingRepository`；同步抽象 `SyncManager`/`Synchronizer`/`Syncable` |
 | `core:data-test` | 数据层 Hilt 测试替身：`FakeGreetingRepository` + `TestDataModule`（`@TestInstallIn` 替换生产绑定） |
-| `core:domain` | **UseCase 层**：`GetGreetingsUseCase`、`AddGreetingUseCase`（组合仓库的单一职责操作） |
+| `core:domain` | **UseCase 层**：`GetGreetingsUseCase`（组合仓库的单一职责操作；模板为只读示例，写入 UseCase 按第六章自行添加） |
 | `core:navigation` | **Navigation3 基建**：`Navigator`、`NavigationState`（顶层栈 + 子栈管理） |
 | `core:designsystem` | **设计系统**：`AppTheme`（Color/Type/Shape/Spacing）、可复用组件（`UiStateView`/`LoadingIndicator`/`ErrorView`/`EmptyView`）、`AppIcons` |
 | `core:ui` | **跨 feature 共享业务 UI** 层（当前为占位，`api` 暴露 designsystem，随业务扩展填充） |
@@ -130,19 +130,20 @@
 
 ### 代码示例
 
+> 模板的 `GreetingScreen` 有意只显示 "Hello World"（不附带业务 UI），但 `GreetingViewModel` 与完整数据层都原样存在于模板中。下面两段代码演示完整的 UDF 写法：开发自己的功能时，按第二段的样式编写界面并接入 ViewModel。
+
 **ViewModel（暴露 StateFlow）**：
 
 ```kotlin
 @HiltViewModel
 class GreetingViewModel @Inject constructor(
     private val getGreetings: GetGreetingsUseCase,
-    private val addGreeting: AddGreetingUseCase,
     syncManager: SyncManager,
 ) : ViewModel() {
 
     private val retryTrigger = MutableStateFlow(0)
 
-    val uiState: StateFlow<UiState<List<String>>> = retryTrigger
+    val uiState: StateFlow<UiState<List<Greeting>>> = retryTrigger
         .flatMapLatest {
             getGreetings()
                 .map { data -> if (data.isEmpty()) UiState.Empty else UiState.Success(data) }
@@ -153,11 +154,11 @@ class GreetingViewModel @Inject constructor(
     val isSyncing: StateFlow<Boolean> = syncManager.isSyncing
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun addGreeting(message: String) = viewModelScope.launch { addGreeting(message) }
-
     fun retry() { retryTrigger.value++ }   // 重试：重新触发数据加载
 }
 ```
+
+> 模板是**只读**示例：`uiState` 贯穿领域模型 `List<Greeting>`，没有写入方法。需要增删改时，按第六章在 ViewModel 增加方法并经写入 UseCase 调 `Repository`。
 
 **Compose（collectAsStateWithLifecycle 消费 + 事件上行）**：
 
@@ -172,7 +173,6 @@ fun GreetingScreen(
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     Column(modifier.safeDrawingPadding().fillMaxSize()) {
         if (isSyncing) LinearProgressIndicator(Modifier.fillMaxWidth())   // 同步中指示
-        GreetingInput(onSave = viewModel::addGreeting)                      // 事件上行
         UiStateView(
             uiState = uiState,
             onRetry = viewModel::retry,                                   // 事件上行
@@ -277,7 +277,7 @@ UI   → ViewModel → repository.greetings → 只读 Room（离线也能显示
 
 - **`core:designsystem` vs `core:ui`**：前者纯设计（主题/通用组件/图标，**零业务、不依赖领域模型**）；后者是**跨 feature 共享的业务 UI**（消费 `core:model`）。只在一个 feature 内用的 UI 放 `feature:*:impl`，不上提。
 - **什么时候写 UseCase**：组合一个或多个 Repository 成一个聚焦操作时。模板约定 ViewModel 一律经 UseCase 取数，不直连 Repository。注意：这是**比 NiA 更严的约定**（NiA 的 ViewModel 如 `ForYouViewModel` 实际同时直注 Repository 与 UseCase），模板有意收紧以强制分层。UseCase 的真正价值在"组合多仓库 + 派生新领域模型"（如 NiA `GetFollowableTopicsUseCase` 用 `combine` 组合两个仓库），仅透传单仓库只是形式上的满足。
-- **Repository 返回什么**：一律返回领域模型流（`Flow<List<领域模型>>`），让领域模型从 database（`toModel()`）→ data → domain → ViewModel 贯穿传递。内置 `greeting` 示例为极简演示返回了 `Flow<List<String>>`，业务开发请勿模仿，按领域模型贯穿处理。
+- **Repository 返回什么**：一律返回领域模型流（`Flow<List<领域模型>>`），让领域模型从 database（`toModel()`）→ data → domain → ViewModel 贯穿传递。内置 `greeting` 示例即按此实现（`Flow<List<Greeting>>`），不要在 Repository 把模型降级成 `List<String>` 等基本类型。
 - **业务状态放哪**：放 ViewModel 的 `StateFlow`；**瞬态 UI 态**（如输入框文本）才用 Compose 本地 `mutableStateOf`。
 - **导航目的地放哪**：`feature:*:api` 的 NavKey；**不要**放 impl，否则别的模块导航进来就得依赖 impl。
 - **测试替身放哪**：替换生产 Hilt 绑定的 Fake 放 `core:data-test`；通用测试规则/工具放 `core:testing`；同步替身放 `sync:sync-test`。
@@ -289,13 +289,13 @@ UI   → ViewModel → repository.greetings → 只读 Room（离线也能显示
 ```bash
 bash customizer.sh com.example.todo TodoItem TodoApp \
     --entity-field title --database-class TodoDatabase --main-activity TodoActivity \
-    --query-method loadTodos --insert-method saveTodo --add-method addTodo \
-    --fake-data "Buy milk,Walk dog"
+    --query-method loadTodos --insert-method saveTodo
 ```
 
 - 位置参数：`包名` `数据模型名(PascalCase)` `[Application类名]`
-- 可选参数：`--entity-field` / `--fake-data` / `--database-class` / `--main-activity` / `--query-method` / `--insert-method` / `--add-method`
+- 可选参数：`--entity-field` / `--database-class` / `--main-activity` / `--query-method` / `--insert-method`
 - 脚本以模板内置的 `greeting` 演示为种子，重命名包、模型、模块目录、各层方法名，并清理过期 Room schema（构建时按新名重建），产出一个可直接开发的业务工程。建议在新项目起步时运行一次。
+- 注意：模板为**只读**示例（无写入 UseCase/界面），产出工程界面仍是 "Hello World" 占位；ViewModel / UseCase / Repository / 数据库已整体重命名为你的业务，照本章编写界面与写入逻辑并接入 ViewModel 即可。
 
 ### 6.5 路径 B：在现有模板上手动添加新 feature（完整示例）
 

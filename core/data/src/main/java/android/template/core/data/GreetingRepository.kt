@@ -10,13 +10,12 @@ import android.template.core.common.Dispatcher
 import android.template.core.database.GreetingDao
 import android.template.core.database.GreetingEntity
 import android.template.core.database.toModel
+import android.template.core.model.Greeting
 import android.template.core.network.GreetingNetworkDataSource
 import javax.inject.Inject
 
 interface GreetingRepository : Syncable {
-    val greetings: Flow<List<String>>
-
-    suspend fun add(message: String)
+    val greetings: Flow<List<Greeting>>
 }
 
 class DefaultGreetingRepository @Inject constructor(
@@ -25,12 +24,8 @@ class DefaultGreetingRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GreetingRepository {
 
-    override val greetings: Flow<List<String>> =
-        greetingDao.getGreetings().map { items -> items.map { it.toModel().message } }
-
-    override suspend fun add(message: String) {
-        greetingDao.insertGreeting(GreetingEntity(message = message))
-    }
+    override val greetings: Flow<List<Greeting>> =
+        greetingDao.getGreetings().map { items -> items.map { it.toModel() } }
 
     /**
      * Synchronizes the local database with the remote source.

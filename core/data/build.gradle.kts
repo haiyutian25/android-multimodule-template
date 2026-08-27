@@ -16,7 +16,8 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.database)
-    implementation(projects.core.model)
+    // Exposed via api: the GreetingRepository public API surfaces the Greeting domain model.
+    api(projects.core.model)
     implementation(projects.core.network)
 
     implementation(libs.kotlinx.coroutines.android)

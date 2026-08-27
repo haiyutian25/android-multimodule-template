@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="save_label">Save</string>
-    <string name="saved_item_format">Saved item: %1$s</string>
+    <string name="hello_world">Hello World</string>
 </resources>
