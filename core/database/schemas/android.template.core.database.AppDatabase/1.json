@@ -2,15 +2,15 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b43c5f9933a3c2dfad14af06bd35a537",
+    "identityHash": "b02bee57f1db69d3009c418a74ec45a9",
     "entities": [
       {
-        "tableName": "mymodel",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "tableName": "greeting",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message` TEXT NOT NULL, `uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
-            "fieldPath": "name",
-            "columnName": "name",
+            "fieldPath": "message",
+            "columnName": "message",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -31,7 +31,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b43c5f9933a3c2dfad14af06bd35a537')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b02bee57f1db69d3009c418a74ec45a9')"
     ]
   }
 }

@@ -5,7 +5,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
-import android.template.core.data.MyModelRepository
+import android.template.core.data.GreetingRepository
 import android.template.core.data.Synchronizer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -18,13 +18,13 @@ import dagger.assisted.AssistedInject
 internal class SyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val myModelRepository: MyModelRepository,
+    private val greetingRepository: GreetingRepository,
 ) : CoroutineWorker(appContext, workerParams), Synchronizer {
 
     override suspend fun doWork(): Result {
         // With more than one Syncable repository they can be synced in parallel with
         // awaitAll(async { repository.sync() }, ...)
-        val syncedSuccessfully = myModelRepository.sync()
+        val syncedSuccessfully = greetingRepository.sync()
 
         return if (syncedSuccessfully) {
             Result.success()

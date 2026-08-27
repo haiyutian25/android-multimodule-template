@@ -43,8 +43,8 @@ baselineProfile {
 
 dependencies {
     implementation(projects.core.ui)
-    implementation(projects.feature.mymodel.api)
-    implementation(projects.feature.mymodel.impl)
+    implementation(projects.feature.greeting.api)
+    implementation(projects.feature.greeting.impl)
     implementation(projects.sync.work)
 
     // Core Android dependencies

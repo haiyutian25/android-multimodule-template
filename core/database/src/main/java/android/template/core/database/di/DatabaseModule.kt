@@ -8,15 +8,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import android.template.core.database.AppDatabase
-import android.template.core.database.MyModelDao
+import android.template.core.database.GreetingDao
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 class DatabaseModule {
     @Provides
-    fun provideMyModelDao(appDatabase: AppDatabase): MyModelDao {
-        return appDatabase.myModelDao()
+    fun provideGreetingDao(appDatabase: AppDatabase): GreetingDao {
+        return appDatabase.greetingDao()
     }
 
     @Provides
@@ -25,7 +25,7 @@ class DatabaseModule {
         return Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
-            "MyModel"
+            "Greeting"
         ).build()
     }
 }

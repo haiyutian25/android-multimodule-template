@@ -1,6 +1,6 @@
 package android.template.core.data.test
 
-import android.template.core.data.MyModelRepository
+import android.template.core.data.GreetingRepository
 import android.template.core.data.di.DataModule
 import dagger.Binds
 import dagger.Module
@@ -15,7 +15,7 @@ import dagger.hilt.testing.TestInstallIn
 interface TestDataModule {
 
     @Binds
-    fun bindsMyModelRepository(
-        fakeMyModelRepository: FakeMyModelRepository,
-    ): MyModelRepository
+    fun bindsGreetingRepository(
+        fakeGreetingRepository: FakeGreetingRepository,
+    ): GreetingRepository
 }

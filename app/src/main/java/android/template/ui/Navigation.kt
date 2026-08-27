@@ -3,8 +3,8 @@ package android.template.ui
 import android.template.core.navigation.Navigator
 import android.template.core.navigation.rememberNavigationState
 import android.template.core.navigation.toEntries
-import android.template.feature.mymodel.api.navigation.Main
-import android.template.feature.mymodel.impl.navigation.MyModelEntryProvider
+import android.template.feature.greeting.api.navigation.Main
+import android.template.feature.greeting.impl.navigation.GreetingEntryProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.entryProvider
@@ -20,7 +20,7 @@ fun MainNavigation() {
     NavDisplay(
         entries = navigationState.toEntries(
             entryProvider = entryProvider {
-                MyModelEntryProvider(navigator = navigator)
+                GreetingEntryProvider(navigator = navigator)
             }
         ),
         onBack = { navigator.goBack() },

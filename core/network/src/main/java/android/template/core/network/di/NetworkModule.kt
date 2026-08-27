@@ -1,8 +1,8 @@
 package android.template.core.network.di
 
 import android.template.core.network.BuildConfig
-import android.template.core.network.MyModelNetworkDataSource
-import android.template.core.network.retrofit.RetrofitMyModelNetwork
+import android.template.core.network.GreetingNetworkDataSource
+import android.template.core.network.retrofit.RetrofitGreetingNetwork
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -20,9 +20,9 @@ internal interface NetworkModule {
 
     @Binds
     @Singleton
-    fun bindsMyModelNetworkDataSource(
-        networkDataSource: RetrofitMyModelNetwork,
-    ): MyModelNetworkDataSource
+    fun bindsGreetingNetworkDataSource(
+        networkDataSource: RetrofitGreetingNetwork,
+    ): GreetingNetworkDataSource
 
     companion object {
         @Provides
