@@ -26,8 +26,8 @@ The following module types are used:
 
 - `app` — the application shell (single activity, navigation host, theme).
 - `core:*` — shared building blocks used by one or more feature modules (`model`, `database`, `network`, `data`, `domain`, `designsystem`, `ui`, `navigation`, `common`, `testing`, `data-test`).
-- `feature:mymodel:impl` — the `mymodel` feature (UI + ViewModel).
-- `feature:mymodel:api` — the navigation keys for the `mymodel` feature. This lets other modules navigate to `mymodel`'s screens without depending on `feature:mymodel:impl` (an [api / implementation split](https://developer.android.com/topic/modularization/patterns#dependency_injection)).
+- `feature:greeting:impl` — the `greeting` feature (UI + ViewModel).
+- `feature:greeting:api` — the navigation keys for the `greeting` feature. This lets other modules navigate to `greeting`'s screens without depending on `feature:greeting:impl` (an [api / implementation split](https://developer.android.com/topic/modularization/patterns#dependency_injection)).
 - `sync:work` — WorkManager-based sync (`sync:sync-test` provides sync test doubles).
 - `benchmarks` — Macrobenchmark + Baseline Profile generation.
 - `ui-test-hilt-manifest` — a Hilt host activity for UI tests.

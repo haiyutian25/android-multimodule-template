@@ -22,7 +22,7 @@ architecture-templates-multimodule/
 │   ├── testing/   ← Gradle 模块
 │   └── ui/   ← Gradle 模块
 ├── feature/
-│   └── mymodel/
+│   └── greeting/
 │       ├── api/   ← Gradle 模块
 │       └── impl/   ← Gradle 模块
 ├── gradle/
@@ -41,6 +41,7 @@ architecture-templates-multimodule/
 ├── settings.gradle.kts
 ├── TEMPLATE_ALIGNMENT_GAPS.md
 ├── TEMPLATE_EVOLUTION_PLAN.md
+├── TEMPLATE_GENERATOR_PLAN.md
 ├── TEMPLATE_REALIGNMENT_PLAN.md
 └── WORKSPACE_STRUCTURE.md
 ```
@@ -61,8 +62,8 @@ architecture-templates-multimodule/
 :core:network
 :core:testing
 :core:ui
-:feature:mymodel:api
-:feature:mymodel:impl
+:feature:greeting:api
+:feature:greeting:impl
 :sync:sync-test
 :sync:work
 :ui-test-hilt-manifest

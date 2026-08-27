@@ -16,7 +16,7 @@
 - **多模块分层**：UI / Domain / Data 清晰解耦
 - **Jetpack Compose + Navigation3 + Hilt + Room + Retrofit + WorkManager**
 
-模板内置一个最小可运行示例（`mymodel`），用于演示整套架构如何串起来。你可以用 `customizer.sh` 一键把它改成你的业务，或按"第六章"手动添加新业务模块。
+模板内置一个最小可运行示例（`greeting`），用于演示整套架构如何串起来。你可以用 `customizer.sh` 一键把它改成你的业务，或按"第六章"手动添加新业务模块。
 
 ### 技术栈
 
@@ -88,24 +88,24 @@
 
 | 模块 | 职责 |
 |---|---|
-| `core:model` | **纯领域模型**（如 `MyModel`），纯 JVM，无任何依赖，被各层共享 |
+| `core:model` | **纯领域模型**（如 `Greeting`），纯 JVM，无任何依赖，被各层共享 |
 | `core:common` | 通用工具（纯 JVM）：协程调度器限定符 `@Dispatcher(IO/Default)`、应用级协程作用域 `@ApplicationScope` |
-| `core:database` | **Room 本地存储**：`AppDatabase`、`MyModelEntity`、`MyModelDao`，Entity → 领域模型映射 |
-| `core:network` | **网络层**：`MyModelNetworkDataSource` 接口 + `RetrofitMyModelNetwork`（Retrofit/OkHttp）+ 网络 DTO `NetworkMyModel` |
-| `core:data` | **仓库层（离线优先核心）**：`MyModelRepository` + `DefaultMyModelRepository`；同步抽象 `SyncManager`/`Synchronizer`/`Syncable` |
-| `core:data-test` | 数据层 Hilt 测试替身：`FakeMyModelRepository` + `TestDataModule`（`@TestInstallIn` 替换生产绑定） |
-| `core:domain` | **UseCase 层**：`GetMyModelsUseCase`、`AddMyModelUseCase`（组合仓库的单一职责操作） |
+| `core:database` | **Room 本地存储**：`AppDatabase`、`GreetingEntity`、`GreetingDao`，Entity → 领域模型映射 |
+| `core:network` | **网络层**：`GreetingNetworkDataSource` 接口 + `RetrofitGreetingNetwork`（Retrofit/OkHttp）+ 网络 DTO `NetworkGreeting` |
+| `core:data` | **仓库层（离线优先核心）**：`GreetingRepository` + `DefaultGreetingRepository`；同步抽象 `SyncManager`/`Synchronizer`/`Syncable` |
+| `core:data-test` | 数据层 Hilt 测试替身：`FakeGreetingRepository` + `TestDataModule`（`@TestInstallIn` 替换生产绑定） |
+| `core:domain` | **UseCase 层**：`GetGreetingsUseCase`、`AddGreetingUseCase`（组合仓库的单一职责操作） |
 | `core:navigation` | **Navigation3 基建**：`Navigator`、`NavigationState`（顶层栈 + 子栈管理） |
 | `core:designsystem` | **设计系统**：`AppTheme`（Color/Type/Shape/Spacing）、可复用组件（`UiStateView`/`LoadingIndicator`/`ErrorView`/`EmptyView`）、`AppIcons` |
 | `core:ui` | **跨 feature 共享业务 UI** 层（当前为占位，`api` 暴露 designsystem，随业务扩展填充） |
-| `core:testing` | 测试基建：`HiltTestRunner`、`MainDispatcherRule`、`TestMyModelRepository`、`TestSyncManager`、`TestDispatcherModule`、`TestDispatchersModule` |
+| `core:testing` | 测试基建：`HiltTestRunner`、`MainDispatcherRule`、`TestGreetingRepository`、`TestSyncManager`、`TestDispatcherModule`、`TestDispatchersModule` |
 
 ### feature 模块（双模块拆分）
 
 | 模块 | 职责 |
 |---|---|
-| `feature:mymodel:api` | **导航契约**：`Main` NavKey（`@Serializable`），供其它模块导航到本 feature |
-| `feature:mymodel:impl` | **UI + ViewModel**：`MyModelScreen`、`MyModelViewModel`、`EntryProvider`（导航注册） |
+| `feature:greeting:api` | **导航契约**：`Main` NavKey（`@Serializable`），供其它模块导航到本 feature |
+| `feature:greeting:impl` | **UI + ViewModel**：`GreetingScreen`、`GreetingViewModel`、`EntryProvider`（导航注册） |
 
 ### sync 模块
 
@@ -134,9 +134,9 @@
 
 ```kotlin
 @HiltViewModel
-class MyModelViewModel @Inject constructor(
-    private val getMyModels: GetMyModelsUseCase,
-    private val addMyModel: AddMyModelUseCase,
+class GreetingViewModel @Inject constructor(
+    private val getGreetings: GetGreetingsUseCase,
+    private val addGreeting: AddGreetingUseCase,
     syncManager: SyncManager,
 ) : ViewModel() {
 
@@ -144,7 +144,7 @@ class MyModelViewModel @Inject constructor(
 
     val uiState: StateFlow<UiState<List<String>>> = retryTrigger
         .flatMapLatest {
-            getMyModels()
+            getGreetings()
                 .map { data -> if (data.isEmpty()) UiState.Empty else UiState.Success(data) }
                 .catch { emit(UiState.Error(it)) }
         }
@@ -153,7 +153,7 @@ class MyModelViewModel @Inject constructor(
     val isSyncing: StateFlow<Boolean> = syncManager.isSyncing
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun addMyModel(name: String) = viewModelScope.launch { addMyModel(name) }
+    fun addGreeting(message: String) = viewModelScope.launch { addGreeting(message) }
 
     fun retry() { retryTrigger.value++ }   // 重试：重新触发数据加载
 }
@@ -163,21 +163,21 @@ class MyModelViewModel @Inject constructor(
 
 ```kotlin
 @Composable
-fun MyModelScreen(
+fun GreetingScreen(
     onItemClick: (NavKey) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: MyModelViewModel = hiltViewModel(),
+    viewModel: GreetingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     Column(modifier.safeDrawingPadding().fillMaxSize()) {
         if (isSyncing) LinearProgressIndicator(Modifier.fillMaxWidth())   // 同步中指示
-        MyModelInput(onSave = viewModel::addMyModel)                      // 事件上行
+        GreetingInput(onSave = viewModel::addGreeting)                      // 事件上行
         UiStateView(
             uiState = uiState,
             onRetry = viewModel::retry,                                   // 事件上行
             modifier = Modifier.fillMaxWidth().weight(1f),
-            successContent = { items -> MyModelList(items = items) },     // 无状态渲染
+            successContent = { items -> GreetingList(items = items) },     // 无状态渲染
         )
     }
 }
@@ -205,15 +205,15 @@ fun MyModelScreen(
 ```
 启动 → MyApplication.onCreate → Sync.initialize 入队 WorkManager（网络约束 CONNECTED）
      → SyncWorker（有网时）→ repository.syncWith → 网络拉取 → 写入 Room
-UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示缓存）
+UI   → ViewModel → repository.greetings → 只读 Room（离线也能显示缓存）
 ```
 
 ### 关键实现点
 
 | 环节 | 位置 | 说明 |
 |---|---|---|
-| 本地读 | `DefaultMyModelRepository.myModels` | 只读 `myModelDao`，绝不直连网络 |
-| 网络同步 | `DefaultMyModelRepository.syncWith` | 从 `networkDataSource` 拉取 → 写入 Room |
+| 本地读 | `DefaultGreetingRepository.greetings` | 只读 `greetingDao`，绝不直连网络 |
+| 网络同步 | `DefaultGreetingRepository.syncWith` | 从 `networkDataSource` 拉取 → 写入 Room |
 | 同步抽象 | `core:data` `Synchronizer`/`Syncable` | 仓库实现 `Syncable` 获得同步能力；**还需**注入 `SyncWorker` 并调 `sync()` 才真正参与同步（非自动，见 6.2） |
 | 后台执行 | `sync:work` `SyncWorker` | `@HiltWorker`，调 `repository.sync()`，失败 `retry` |
 | 触发 | `Sync.initialize` | 应用启动入队唯一同步任务（`ExistingWorkPolicy.KEEP`） |
@@ -277,14 +277,14 @@ UI   → ViewModel → repository.myModels → 只读 Room（离线也能显示�
 
 - **`core:designsystem` vs `core:ui`**：前者纯设计（主题/通用组件/图标，**零业务、不依赖领域模型**）；后者是**跨 feature 共享的业务 UI**（消费 `core:model`）。只在一个 feature 内用的 UI 放 `feature:*:impl`，不上提。
 - **什么时候写 UseCase**：组合一个或多个 Repository 成一个聚焦操作时。模板约定 ViewModel 一律经 UseCase 取数，不直连 Repository。注意：这是**比 NiA 更严的约定**（NiA 的 ViewModel 如 `ForYouViewModel` 实际同时直注 Repository 与 UseCase），模板有意收紧以强制分层。UseCase 的真正价值在"组合多仓库 + 派生新领域模型"（如 NiA `GetFollowableTopicsUseCase` 用 `combine` 组合两个仓库），仅透传单仓库只是形式上的满足。
-- **Repository 返回什么**：一律返回领域模型流（`Flow<List<领域模型>>`），让领域模型从 database（`toModel()`）→ data → domain → ViewModel 贯穿传递。内置 `mymodel` 示例为极简演示返回了 `Flow<List<String>>`，业务开发请勿模仿，按领域模型贯穿处理。
+- **Repository 返回什么**：一律返回领域模型流（`Flow<List<领域模型>>`），让领域模型从 database（`toModel()`）→ data → domain → ViewModel 贯穿传递。内置 `greeting` 示例为极简演示返回了 `Flow<List<String>>`，业务开发请勿模仿，按领域模型贯穿处理。
 - **业务状态放哪**：放 ViewModel 的 `StateFlow`；**瞬态 UI 态**（如输入框文本）才用 Compose 本地 `mutableStateOf`。
 - **导航目的地放哪**：`feature:*:api` 的 NavKey；**不要**放 impl，否则别的模块导航进来就得依赖 impl。
 - **测试替身放哪**：替换生产 Hilt 绑定的 Fake 放 `core:data-test`；通用测试规则/工具放 `core:testing`；同步替身放 `sync:sync-test`。
 
 ### 6.4 路径 A：用 `customizer.sh` 一键生成（推荐用于新项目起步）
 
-如果这是你的新项目起点，直接运行定制脚本，把模板的 `mymodel` 示例改成你的业务模型：
+如果这是你的新项目起点，直接运行定制脚本，把模板的 `greeting` 示例改成你的业务模型：
 
 ```bash
 bash customizer.sh com.example.todo TodoItem TodoApp \
@@ -295,7 +295,7 @@ bash customizer.sh com.example.todo TodoItem TodoApp \
 
 - 位置参数：`包名` `数据模型名(PascalCase)` `[Application类名]`
 - 可选参数：`--entity-field` / `--fake-data` / `--database-class` / `--main-activity` / `--query-method` / `--insert-method` / `--add-method`
-- 脚本会重命名包、模型、模块目录、各层方法名，产出一个可直接开发的业务工程。
+- 脚本以模板内置的 `greeting` 演示为种子，重命名包、模型、模块目录、各层方法名，并清理过期 Room schema（构建时按新名重建），产出一个可直接开发的业务工程。建议在新项目起步时运行一次。
 
 ### 6.5 路径 B：在现有模板上手动添加新 feature（完整示例）
 
@@ -307,11 +307,11 @@ data class Task(val uid: Int, val title: String)
 ```
 
 **2. 本地存储 → `core:database`**
-- 新增 `TaskEntity`（`@Entity`，主键写法可参照 `MyModelEntity`：`@PrimaryKey(autoGenerate = true) var uid: Int = 0`）+ `TaskDao`（`@Dao`，`getTasks(): Flow<List<TaskEntity>>` + `insertTask`）。
+- 新增 `TaskEntity`（`@Entity`，主键写法可参照 `GreetingEntity`：`@PrimaryKey(autoGenerate = true) var uid: Int = 0`）+ `TaskDao`（`@Dao`，`getTasks(): Flow<List<TaskEntity>>` + `insertTask`）。
 - 在 `AppDatabase` 注册 Entity 与 DAO（`version` +1 并写迁移，或新库）。
 - **在 `DatabaseModule` 为新 DAO 补 `@Provides`**（模板逐个 `@Provides` 暴露 DAO，漏掉这步 Hilt 注入会失败）。
 - 提供 `TaskEntity.toModel(): Task` 映射。
-- 注意：模板示例 `MyModelDao.getMyModels()` 带 `ORDER BY uid DESC LIMIT 10`（演示用限制），新业务 DAO 按需决定排序与条数。
+- 注意：模板示例 `GreetingDao.getGreetings()` 带 `ORDER BY uid DESC LIMIT 10`（演示用限制），新业务 DAO 按需决定排序与条数。
 
 **3. 网络层 → `core:network`**
 - 新增网络 DTO `NetworkTask`（`@Serializable`，与领域模型分离）。
@@ -344,7 +344,7 @@ class GetTasksUseCase @Inject constructor(private val repo: TaskRepository) {
 }
 ```
 
-> 本例为单仓库透传（与内置 `mymodel` 示例相同）。实际业务请优先"组合多仓库 / 派生新模型"（见 6.3 UseCase 条目）。
+> 本例为单仓库透传（与内置 `greeting` 示例相同）。实际业务请优先"组合多仓库 / 派生新模型"（见 6.3 UseCase 条目）。
 
 **6. 注册模块 → `settings.gradle.kts`**（先于步骤 7/8：不 include 则 `projects.feature.task.*` 访问器不存在，后续 `build.gradle.kts` 无法编译）
 ```kotlin
@@ -367,12 +367,12 @@ include 后执行一次 Gradle Sync，即可使用 `projects.feature.task.api` /
 **9. 组装 → `app`**
 - `app` 依赖 `feature:task:api` 与 `feature:task:impl`。
 - 在 `MainNavigation` 的 `entryProvider { ... }` 里加入 `TaskEntryProvider(navigator)`；如需作为顶层目的地，加入 `rememberNavigationState` 的 `topLevelKeys`。
-- 新 feature 如有界面文案，在 `feature:task:impl/src/main/res/values/` 添加 `strings.xml`（参照 `feature:mymodel:impl`）。
+- 新 feature 如有界面文案，在 `feature:task:impl/src/main/res/values/` 添加 `strings.xml`（参照 `feature:greeting:impl`）。
 - 新增顶层目的地后，记得跟进 `app` 的 `NavigationTest`（仪器测试）。
 
 **10. 测试联动 → `core:data-test` / `core:testing`（必做，非可选）**
-- 新增 `FakeTaskRepository`（实现 `TaskRepository` 接口，参照 `FakeMyModelRepository`），并在 `TestDataModule` 补对应 `@Binds`。原因：`TestDataModule` 以 `@TestInstallIn` **整体替换** `DataModule`，步骤 4 新增的 `TaskRepository` 绑定不会自动进入测试图，漏掉这步所有现存仪器测试都会构建失败。
-- 单元测试如需仓库替身，参照 `TestMyModelRepository` 在 `core:testing` 添加 `TestTaskRepository`。
+- 新增 `FakeTaskRepository`（实现 `TaskRepository` 接口，参照 `FakeGreetingRepository`），并在 `TestDataModule` 补对应 `@Binds`。原因：`TestDataModule` 以 `@TestInstallIn` **整体替换** `DataModule`，步骤 4 新增的 `TaskRepository` 绑定不会自动进入测试图，漏掉这步所有现存仪器测试都会构建失败。
+- 单元测试如需仓库替身，参照 `TestGreetingRepository` 在 `core:testing` 添加 `TestTaskRepository`。
 
 > 约定插件（`template.android.feature.api/impl`）已自动注入 feature 公共依赖（`core:ui`、lifecycle、navigation3 等），无需在每个 feature 里手写。
 > 开发完成后运行 `python gen_structure.py` 更新 `WORKSPACE_STRUCTURE.md`，保持结构文档与新模块一致。
@@ -417,7 +417,7 @@ include 后执行一次 Gradle Sync，即可使用 `projects.feature.task.api` /
 │   ├── testing/                # 测试基建
 │   └── ui/                     # 共享业务 UI（占位）
 ├── feature/
-│   └── mymodel/
+│   └── greeting/
 │       ├── api/                # 导航契约（NavKey）
 │       └── impl/               # UI + ViewModel
 ├── gradle/

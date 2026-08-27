@@ -3,7 +3,7 @@
 > 记录日期：2026-08-27
 > 本模板：`architecture-templates-multimodule`
 > 架构参照：Now in Android（NiA）
-> 状态：**方案文档（待实施）**
+> 状态：**已实施并验证**（Part A：mymodel→greeting 架构演示；Part B：customizer 改造为生成器；定制后工程 assembleDebug + testDebugUnitTest 通过）
 > 定型：**方案 A** —— hello world 是**完整架构演示**（各 core 模块保留 hello world 内容，非空壳）
 > 关联文档：`DEVELOPMENT_MANUAL.md`（生成器产出的代码必须遵循手册规范）
 
@@ -164,12 +164,14 @@ hello world **不是**最小静态页，而是**完整架构演示**，覆盖模
 
 ## 五、实施路线图
 
-| 阶段 | 内容 | 产出 |
+| 阶段 | 内容 | 状态 |
 |---|---|---|
-| 1 | Part A：把 mymodel 业务替换为 hello world 架构演示 | hello world 可运行的模板 |
-| 2 | Part B：实现生成器（heredoc 生成各层 + 移除 hello world） | 新 `customizer.sh` |
-| 3 | 验证：生成→构建→测试；与旧产物等价性对比 | 通过验证 |
-| 4 | 更新文档：`DEVELOPMENT_MANUAL.md`、`WORKSPACE_STRUCTURE.md` 等 | 文档同步 |
+| 1 | Part A：把 mymodel 业务替换为 hello world（`greeting`）架构演示 | ✅ 完成 |
+| 2 | Part B：`customizer.sh` 改造为生成器 | ✅ 完成 |
+| 3 | 验证：定制→`assembleDebug`→`testDebugUnitTest` | ✅ 通过 |
+| 4 | 更新文档：手册 / 结构 / README | ✅ 完成 |
+
+> **实施说明**：Part B 最终采用"**重命名 greeting 种子**"方案——定制脚本把模板内置的 `greeting` 演示整体重命名为用户业务（包名/模型/模块目录/方法名/字段），并清理过期 Room schema；而非 4.4 最初设想的 heredoc 逐文件生成。前者复用已验证的演示代码、无"两份副本漂移"问题，产出等价且更简洁。字段改名采用**定向模式**，避免误伤 designsystem 的 `message` 参数与 `Throwable.message`。
 
 ---
 
